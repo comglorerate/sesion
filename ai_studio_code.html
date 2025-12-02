@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Market Hours</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            /* Palette */
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #10b981;
+            --accent-green-glow: rgba(16, 185, 129, 0.2);
+            --accent-red: #ef4444;
+            --accent-orange: #f59e0b;
+            --border-color: #334155;
+            --bar-bg: #334155; /* Darker track for the progress bar */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        /* --- Header --- */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(to bottom, #0f172a, #1e293b);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            color: var(--accent-green);
+            font-weight: 600;
+            font-size: 1.1rem;
+            flex-wrap: wrap;
+        }
+
+        .user-info span {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--accent-green-glow);
+        }
+
+        /* --- Layout --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        section { margin-bottom: 60px; }
+        
+        .section-header {
+            margin-bottom: 25px;
+            border-left: 4px solid var(--accent-green);
+            padding-left: 15px;
+        }
+
+        .section-header h2 { font-size: 1.8rem; color: var(--text-main); }
+        .section-header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 5px; }
+
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* --- Cards --- */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border-color: var(--accent-green);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .market-name { font-size: 1.25rem; font-weight: 700; }
+        .market-icon { font-size: 1.5rem; color: var(--text-muted); }
+
+        /* --- Status --- */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 10px; /* Reduced to make room for bar */
+        }
+
+        .status-open {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green-glow);
+        }
+
+        .status-closed {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-soon {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--accent-orange);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* --- NEW: Progress Bar --- */
+        .session-progress {
+            margin-bottom: 20px;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .progress-track {
+            height: 6px;
+            width: 100%;
+            background-color: var(--bar-bg);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Progress colors */
+        .fill-active { background-color: var(--accent-green); }
+        .fill-ended { background-color: var(--text-muted); opacity: 0.5; }
+
+        /* --- Time Details --- */
+        .time-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .time-label { color: var(--text-muted); }
+        .time-value { font-weight: 600; color: var(--text-main); }
+
+        .sub-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* --- Pulse Animation --- */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .indicator-dot {
+            height: 10px; width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .dot-open { background-color: var(--accent-green); animation: pulse 2s infinite; }
+        .dot-closed { background-color: var(--accent-red); }
+        .dot-soon { background-color: var(--accent-orange); }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .user-info { flex-direction: column; gap: 10px; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-chart-line"></i> Financial Market Hours</h1>
+        <div class="user-info">
+            <span id="user-timezone"><i class="fa-solid fa-globe"></i> Detecting...</span>
+            <span id="user-clock"><i class="fa-regular fa-clock"></i> --:--:--</span>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- FOREX -->
+        <section>
+            <div class="section-header">
+                <h2>Forex Sessions</h2>
+                <p>24h Global Currency Markets. Progress bar indicates current session completion.</p>
+            </div>
+            <div class="market-grid" id="forex-grid"></div>
+        </section>
+
+        <!-- STOCKS -->
+        <section>
+            <div class="section-header">
+                <h2>US Stock Markets</h2>
+                <p>New York (NYSE & NASDAQ). Progress bar tracks the standard trading session.</p>
+            </div>
+            <div class="market-grid" id="stocks-grid"></div>
+        </section>
+
+    </div>
+
+    <script>
+        // --- Data ---
+        const forexMarkets = [
+            { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney', open: 7, close: 16, icon: 'fa-earth-oceania' },
+            { id: 'tokyo', name: 'Tokyo', tz: 'Asia/Tokyo', open: 9, close: 18, icon: 'fa-yen-sign' },
+            { id: 'london', name: 'London', tz: 'Europe/London', open: 8, close: 17, icon: 'fa-sterling-sign' },
+            { id: 'ny', name: 'New York', tz: 'America/New_York', open: 8, close: 17, icon: 'fa-dollar-sign' }
+        ];
+
+        const stockMarkets = [
+            { 
+                id: 'nyse', name: 'NYSE', tz: 'America/New_York', 
+                open: 9, openMin: 30, close: 16, closeMin: 0, 
+                preOpen: 4, afterClose: 20, icon: 'fa-building-columns'
+            },
+            { 
+                id: 'nasdaq', name: 'NASDAQ', tz: 'America/New_York', 
+                open: 9, openMin: 30, close: 16, closeMin: 0, 
+                preOpen: 4, afterClose: 20, icon: 'fa-laptop-code'
+            }
+        ];
+
+        // --- Helpers ---
+        function formatLocalTime(dateObj) {
+            return new Intl.DateTimeFormat(undefined, {
+                hour: '2-digit', minute: '2-digit'
+            }).format(dateObj);
+        }
+
+        // Returns { h, m, dayOfWeek } in the Target Timezone
+        function getTimeInZone(timeZone) {
+            const now = new Date();
+            const str = now.toLocaleString('en-US', { timeZone: timeZone, hour12: false });
+            const [date, time] = str.split(', ');
+            const [h, m] = time.split(':').map(Number);
+            const targetDate = new Date(str); 
+            return { h, m, dayOfWeek: targetDate.getDay() };
+        }
+
+        // Helper to display "Opens at 09:00" converted to User Local Time
+        function getFormattedUserTimeFromMarketTime(h, m, tz) {
+            const nowLocal = new Date();
+            const nowMarketStr = nowLocal.toLocaleString('en-US', { timeZone: tz });
+            const nowMarket = new Date(nowMarketStr);
+            const diffMs = nowMarket - nowLocal; 
+            
+            const targetMarketDate = new Date(nowMarket);
+            targetMarketDate.setHours(h, m, 0);
+            
+            // Subtract offset to get local time equivalent
+            const targetLocalDate = new Date(targetMarketDate.getTime() - diffMs);
+            return formatLocalTime(targetLocalDate);
+        }
+
+        // --- Core Logic ---
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('user-clock').innerHTML = `<i class="fa-regular fa-clock"></i> ${now.toLocaleTimeString()}`;
+            document.getElementById('user-timezone').innerHTML = `<i class="fa-solid fa-globe"></i> ${Intl.DateTimeFormat().resolvedOptions().timeZone.replace('_', ' ')}`;
+        }
+
+        function getMarketData(mkt) {
+            const nowZone = getTimeInZone(mkt.tz);
+            const currentMins = nowZone.h * 60 + nowZone.m;
+            
+            const openMins = mkt.open * 60 + (mkt.openMin || 0);
+            const closeMins = mkt.close * 60 + (mkt.closeMin || 0);
+            
+            let status = 'closed';
+            let label = 'Closed';
+            let colorClass = 'status-closed';
+            let dotClass = 'dot-closed';
+            let progress = 0;
+            let barClass = 'fill-ended'; // default grey
+
+            // Weekend Check (Simplified)
+            if (nowZone.dayOfWeek === 6 || (nowZone.dayOfWeek === 0 && currentMins < openMins && mkt.id !== 'sydney')) {
+                // Weekend Closed
+                progress = 0;
+            } else {
+                // Pre/Post checks
+                let isPre = false;
+                let isAfter = false;
+
+                if (mkt.preOpen) {
+                    if (currentMins >= mkt.preOpen * 60 && currentMins < openMins) isPre = true;
+                }
+                if (mkt.afterClose) {
+                    if (currentMins >= closeMins && currentMins < mkt.afterClose * 60) isAfter = true;
+                }
+
+                // Main Session Logic
+                if (currentMins >= openMins && currentMins < closeMins) {
+                    status = 'open';
+                    label = 'Market Open';
+                    colorClass = 'status-open';
+                    dotClass = 'dot-open';
+                    
+                    // Calculate Progress %
+                    const totalDuration = closeMins - openMins;
+                    const elapsed = currentMins - openMins;
+                    progress = (elapsed / totalDuration) * 100;
+                    barClass = 'fill-active'; // Green
+
+                } else if (currentMins < openMins) {
+                    // Before Open
+                    status = isPre ? 'soon' : (currentMins >= openMins - 60 ? 'soon' : 'closed');
+                    label = isPre ? 'Pre-Market' : (status === 'soon' ? 'Opening Soon' : 'Closed');
+                    colorClass = status === 'soon' ? 'status-soon' : 'status-closed';
+                    dotClass = status === 'soon' ? 'dot-soon' : 'dot-closed';
+                    progress = 0;
+                    
+                } else {
+                    // After Close
+                    status = isAfter ? 'soon' : 'closed';
+                    label = isAfter ? 'After-Hours' : 'Closed';
+                    colorClass = isAfter ? 'status-soon' : 'status-closed';
+                    dotClass = isAfter ? 'dot-soon' : 'dot-closed';
+                    progress = 100; // Full bar to show "Day Finished"
+                    barClass = 'fill-ended'; // Grey
+                }
+            }
+            
+            return { status, label, colorClass, dotClass, progress: progress.toFixed(1), barClass };
+        }
+
+        function createCard(mkt) {
+            const data = getMarketData(mkt);
+            const localOpen = getFormattedUserTimeFromMarketTime(mkt.open, mkt.openMin || 0, mkt.tz);
+            const localClose = getFormattedUserTimeFromMarketTime(mkt.close, mkt.closeMin || 0, mkt.tz);
+            const curTime = getTimeInZone(mkt.tz);
+            const mktTimeStr = `${curTime.h.toString().padStart(2,'0')}:${curTime.m.toString().padStart(2,'0')}`;
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <span class="market-name">${mkt.name}</span>
+                        <i class="fa-solid ${mkt.icon} market-icon"></i>
+                    </div>
+                    
+                    <div class="status-badge ${data.colorClass}">
+                        <span class="indicator-dot ${data.dotClass}"></span> ${data.label}
+                    </div>
+
+                    <!-- Progress Bar Section -->
+                    <div class="session-progress">
+                        <div class="progress-labels">
+                            <span>Elapsed</span>
+                            <span>${data.progress}%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill ${data.barClass}" style="width: ${data.progress}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="time-row">
+                        <span class="time-label">Opens:</span>
+                        <span class="time-value">${localOpen}</span>
+                    </div>
+                    <div class="time-row">
+                        <span class="time-label">Closes:</span>
+                        <span class="time-value">${localClose}</span>
+                    </div>
+                    <div class="sub-time">
+                        Market Time: ${mktTimeStr}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMarkets() {
+            const forexContainer = document.getElementById('forex-grid');
+            const stocksContainer = document.getElementById('stocks-grid');
+
+            let forexHTML = '';
+            forexMarkets.forEach(m => forexHTML += createCard(m));
+            forexContainer.innerHTML = forexHTML;
+
+            let stocksHTML = '';
+            stockMarkets.forEach(m => stocksHTML += createCard(m));
+            stocksContainer.innerHTML = stocksHTML;
+        }
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateClock();
+            renderMarkets();
+            
+            // Updates
+            setInterval(() => {
+                updateClock();
+                // Re-render every 30s to update bars and status
+                const s = new Date().getSeconds();
+                if(s % 30 === 0 || s === 0) renderMarkets();
+            }, 1000);
+        });
+
+    </script>
+</body>
+</html>
