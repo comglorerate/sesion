@@ -217,6 +217,18 @@
             h1 { font-size: 1.8rem; }
             .user-info { flex-direction: column; gap: 10px; align-items: center; }
         }
+        /* --- Footer --- */
+        footer {
+            margin-top: 40px;
+            padding: 18px 20px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+        .footer-brand { color: var(--text-main); font-weight: 700; display: block; margin-bottom: 8px; }
+        .social-links { display:flex; justify-content:center; gap:18px; margin-top:8px; flex-wrap:wrap; }
+        .social-links a { color: var(--text-muted); text-decoration: none; font-weight: 600; display:inline-flex; align-items:center; gap:8px; }
+        .social-links a:hover { color: var(--accent-green); }
     </style>
 </head>
 <body>
@@ -450,5 +462,16 @@
         });
 
     </script>
+    
+    <footer>
+        <span class="footer-brand">Comunidad Lobo Trading</span>
+        <div class="social-links">
+            <a href="https://www.youtube.com/@Lobotradingclub" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-youtube"></i> YouTube</a>
+            <a href="https://x.com/lobotradingve" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-x"></i></a>
+            <a href="https://www.instagram.com/lobotradingve" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i> Instagram</a>
+            <a href="https://www.tiktok.com/@lobotradingve" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-tiktok"></i> TikTok</a>
+            <a href="https://kick.com/lobotradingclub" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-link"></i> KICK</a>
+        </div>
+    </footer>
 </body>
 </html>
