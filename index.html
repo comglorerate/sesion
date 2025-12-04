@@ -177,6 +177,23 @@
         .fill-active { background-color: var(--accent-green); }
         .fill-ended { background-color: var(--text-muted); opacity: 0.5; }
 
+        /* NASDAQ highlight states (applied only during intervals) */
+        :root {
+            --accent-green-intense: #047857; /* more intense green */
+            --accent-yellow: #f59e0b;
+            --accent-orange: #ef7a1a;
+        }
+
+        .highlight-morning { background-color: var(--accent-green) !important; }
+        .highlight-midday { background: linear-gradient(90deg, var(--accent-yellow), var(--accent-orange)) !important; }
+        .highlight-afternoon { background-color: var(--accent-green-intense) !important; }
+
+        /* NASDAQ info block styles */
+        .nasdaq-info { margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .nasdaq-info .info-block { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 8px 10px; border-radius: 8px; min-width: 140px; }
+        .nasdaq-info .info-title { font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+        .nasdaq-info .info-time { color: var(--text-muted); font-size: 0.95rem; }
+
         /* --- Time Details --- */
         .time-row {
             display: flex;
@@ -242,15 +259,6 @@
     </header>
 
     <div class="container">
-        
-        <!-- FOREX -->
-        <section>
-            <div class="section-header">
-                <h2>Sesión de Forex</h2>
-                <p>(Mercado de Divisas)</p>
-            </div>
-            <div class="market-grid" id="forex-grid"></div>
-        </section>
 
         <!-- STOCKS -->
         <section>
@@ -259,6 +267,15 @@
                 <p>(Mercado de Acciones)</p>
             </div>
             <div class="market-grid" id="stocks-grid"></div>
+        </section>
+
+        <!-- FOREX -->
+        <section>
+            <div class="section-header">
+                <h2>Sesión de Forex</h2>
+                <p>(Mercado de Divisas)</p>
+            </div>
+            <div class="market-grid" id="forex-grid"></div>
         </section>
 
     </div>
@@ -338,6 +355,7 @@
             let dotClass = 'dot-closed';
             let progress = 0;
             let barClass = 'fill-ended'; // default grey
+            let highlightClass = '';
 
             // Weekend Check (Simplified)
             if (nowZone.dayOfWeek === 6 || (nowZone.dayOfWeek === 0 && currentMins < openMins && mkt.id !== 'sydney')) {
@@ -386,8 +404,28 @@
                     barClass = 'fill-ended'; // Grey
                 }
             }
-            
-            return { status, label, colorClass, dotClass, progress: progress.toFixed(1), barClass };
+            // NASDAQ-specific highlight intervals (market local time)
+            if (mkt.id === 'nasdaq') {
+                // minutes since midnight
+                const morningStart = 9 * 60 + 30; // 9:30
+                const morningEnd = 10 * 60 + 30; // 10:30
+                const middayStart = 11 * 60 + 30; // 11:30
+                const middayEnd = 13 * 60 + 30; // 13:30
+                const afternoonStart = 15 * 60 + 0; // 15:00
+                const afternoonEnd = 16 * 60 + 0; // 16:00
+
+                if (currentMins >= morningStart && currentMins < morningEnd) {
+                    highlightClass = 'highlight-morning';
+                } else if (currentMins >= middayStart && currentMins < middayEnd) {
+                    highlightClass = 'highlight-midday';
+                } else if (currentMins >= afternoonStart && currentMins < afternoonEnd) {
+                    highlightClass = 'highlight-afternoon';
+                } else {
+                    highlightClass = '';
+                }
+            }
+
+            return { status, label, colorClass, dotClass, progress: progress.toFixed(1), barClass, highlightClass };
         }
 
         function createCard(mkt) {
@@ -415,7 +453,7 @@
                             <span>${data.progress}%</span>
                         </div>
                         <div class="progress-track">
-                            <div class="progress-fill ${data.barClass}" style="width: ${data.progress}%"></div>
+                            <div class="progress-fill ${data.barClass} ${data.highlightClass || ''}" style="width: ${data.progress}%"></div>
                         </div>
                     </div>
 
@@ -430,6 +468,22 @@
                     <div class="sub-time">
                         Hora del mercado: ${mktTimeStr}
                     </div>
+                    ${mkt.id === 'nasdaq' ? `
+                    <div class="nasdaq-info">
+                        <div class="info-block">
+                            <div class="info-title">Alta volatilidad</div>
+                            <div class="info-time">9:30 – 10:30</div>
+                        </div>
+                        <div class="info-block">
+                            <div class="info-title">Zona de calma</div>
+                            <div class="info-time">11:30 – 13:30</div>
+                        </div>
+                        <div class="info-block">
+                            <div class="info-title">Alta volatilidad</div>
+                            <div class="info-time">15:00 – 16:00</div>
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -438,8 +492,17 @@
             const forexContainer = document.getElementById('forex-grid');
             const stocksContainer = document.getElementById('stocks-grid');
 
+            // Mostrar primero los mercados Forex que están abiertos
+            const forexSorted = [...forexMarkets].sort((a, b) => {
+                const da = getMarketData(a);
+                const db = getMarketData(b);
+                if (da.status === 'open' && db.status !== 'open') return -1;
+                if (db.status === 'open' && da.status !== 'open') return 1;
+                return 0; // mantener orden relativo si ambos abiertos o cerrados
+            });
+
             let forexHTML = '';
-            forexMarkets.forEach(m => forexHTML += createCard(m));
+            forexSorted.forEach(m => forexHTML += createCard(m));
             forexContainer.innerHTML = forexHTML;
 
             let stocksHTML = '';
