@@ -18,21 +18,23 @@
 <body>
 
     <header>
-        <h1><i class="fa-solid fa-chart-line"></i> Horarios de Mercados Financieros</h1>
+        <h1><i class="fa-solid fa-chart-line"></i> <span data-i18n="title">Horarios de Mercados Financieros</span></h1>
 
         <nav class="top-nav" role="navigation" aria-label="Navegación principal">
             <a class="nav-button" href="https://calculadora-trading.netlify.app/" target="_blank" rel="noopener noreferrer" title="Abrir Calculadora">
                 <i class="fa-solid fa-calculator"></i>
-                Calculadora
+                <span data-i18n="nav.calculator">Calculadora</span>
             </a>
             <a class="nav-button" href="https://trading-jornada.netlify.app/" target="_blank" rel="noopener noreferrer" title="Abrir Journal">
                 <i class="fa-solid fa-book"></i>
-                Journal
+                <span data-i18n="nav.journal">Journal</span>
             </a>
         </nav>
 
+        
+
         <div class="user-info">
-            <span id="user-timezone"><i class="fa-solid fa-globe"></i> Detectando...</span>
+            <span id="user-timezone"><i class="fa-solid fa-globe"></i> <span data-i18n="detecting">Detectando...</span></span>
             <span id="user-clock"><i class="fa-regular fa-clock"></i> --:--:--</span>
         </div>
     </header>
@@ -42,18 +44,18 @@
         <!-- STOCKS -->
         <section>
             <div class="section-header">
-                <h2>Bolsa de Valores de EE. UU</h2>
-                <p>(Mercado de Acciones)</p>
-            </div>
+                    <h2><span data-i18n="stocks.title">Bolsa de Valores de EE. UU</span></h2>
+                    <p>(<span data-i18n="stocks.subtitle">Mercado de Acciones</span>)</p>
+                </div>
             <div class="market-grid" id="stocks-grid"></div>
         </section>
 
         <!-- FOREX -->
         <section>
             <div class="section-header">
-                <h2>Sesión de Forex</h2>
-                <p>(Mercado de Divisas)</p>
-            </div>
+                    <h2><span data-i18n="forex.title">Sesión de Forex</span></h2>
+                    <p>(<span data-i18n="forex.subtitle">Mercado de Divisas</span>)</p>
+                </div>
             <div class="market-grid" id="forex-grid"></div>
         </section>
 

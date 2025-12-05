@@ -1,6 +1,102 @@
 // Centralized application JS (extracted from inline script)
 const APP_VERSION = '1.0.0';
 
+// --- Internationalization (ES / EN) ---
+const translations = {
+    es: {
+        title: 'Horarios de Mercados Financieros',
+        nav: { calculator: 'Calculadora', journal: 'Journal' },
+        detecting: 'Detectando... ',
+        stocks: { title: 'Bolsa de Valores de EE. UU', subtitle: 'Mercado de Acciones' },
+        forex: { title: 'Sesión de Forex', subtitle: 'Mercado de Divisas' },
+        status: {
+            closed: 'Cerrado',
+            closed_holiday: 'Cerrado (Feriado: {0})',
+            open: 'Mercado abierto',
+            pre_market: 'Pre-mercado',
+            upcoming_open: 'Próxima apertura',
+            extended_hours: 'Horario extendido',
+            liquidity_limited: 'Liquidez limitada (Feriado)',
+            open_high_spreads: 'Mercado abierto (Spreads altos)'
+        },
+        elapsed: 'Transcurrido',
+        open_label: 'Apertura:',
+        close_label: 'Cierre:',
+        market_time: 'Hora del mercado:',
+        holiday_prefix: 'Feriado:',
+        nasdaq: { high_volatility: 'Alta volatilidad', calm_zone: 'Zona de calma' }
+    },
+    en: {
+        title: 'Market Session Times',
+        nav: { calculator: 'Calculator', journal: 'Journal' },
+        detecting: 'Detecting... ',
+        stocks: { title: 'US Stock Exchanges', subtitle: 'Stock Market' },
+        forex: { title: 'Forex Session', subtitle: 'Currency Market' },
+        status: {
+            closed: 'Closed',
+            closed_holiday: 'Closed (Holiday: {0})',
+            open: 'Market open',
+            pre_market: 'Pre-market',
+            upcoming_open: 'Upcoming open',
+            extended_hours: 'Extended hours',
+            liquidity_limited: 'Limited liquidity (Holiday)',
+            open_high_spreads: 'Market open (High spreads)'
+        },
+        elapsed: 'Elapsed',
+        open_label: 'Open:',
+        close_label: 'Close:',
+        market_time: 'Market time:',
+        holiday_prefix: 'Holiday:',
+        nasdaq: { high_volatility: 'High volatility', calm_zone: 'Calm zone' }
+    }
+};
+
+const SUPPORTED_LANGS = ['es', 'en'];
+let currentLang = 'es';
+
+function getNested(obj, path) {
+    return path.split('.').reduce((o, k) => (o && o[k] !== undefined) ? o[k] : undefined, obj);
+}
+
+function t(key, params) {
+    const val = getNested(translations[currentLang], key) || getNested(translations['es'], key) || key;
+    if (params && Array.isArray(params)) {
+        let s = String(val);
+        params.forEach((p, i) => { s = s.replace(new RegExp('\\{' + i + '\\}', 'g'), p); });
+        return s;
+    }
+    return val;
+}
+
+function detectLanguage() {
+    const stored = localStorage.getItem('lang');
+    if (stored && SUPPORTED_LANGS.includes(stored)) return stored;
+    const nav = (navigator.languages && navigator.languages[0]) || navigator.language || 'es';
+    const code = nav.slice(0,2).toLowerCase();
+    return SUPPORTED_LANGS.includes(code) ? code : 'es';
+}
+
+function setLanguage(lang) {
+    if (!SUPPORTED_LANGS.includes(lang)) lang = 'es';
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    document.documentElement.lang = lang;
+    const sel = document.getElementById('lang-select');
+    if (sel) sel.value = lang;
+    translatePage();
+}
+
+function translatePage(root=document) {
+    const nodes = root.querySelectorAll('[data-i18n]');
+    nodes.forEach(n => {
+        const key = n.getAttribute('data-i18n');
+        const txt = t(key);
+        // Keep HTML where explicit HTML used elsewhere; default to textContent
+        n.textContent = txt;
+    });
+}
+
+
 // --- Data ---
 // `openDays` usa el formato de `Date.getDay()` (0=Dom,1=Lun,..6=Sáb)
 // Stocks: normalmente Lun-Vie -> [1,2,3,4,5]
@@ -117,7 +213,7 @@ function getMarketData(mkt) {
     // Por defecto asumimos Lun-Vie ([1,2,3,4,5]) para mercados que no declaren openDays.
     const openDays = Array.isArray(mkt.openDays) ? mkt.openDays : [1,2,3,4,5];
     if (!openDays.includes(nowZone.dayOfWeek)) {
-        return { status: 'closed', label: 'Cerrado', colorClass: 'status-closed', dotClass: 'dot-closed', progress: 0, barClass: 'fill-ended', highlightClass: '' };
+        return { status: 'closed', labelId: 'status.closed', labelParams: [], colorClass: 'status-closed', dotClass: 'dot-closed', progress: 0, barClass: 'fill-ended', highlightClass: '' };
     }
 
     // Check holidays for this market (in market local date)
@@ -125,10 +221,10 @@ function getMarketData(mkt) {
     // If holiday causes full closure for this market, return closed immediately
     if (holiday) {
         if (holiday.stocksClose && isStockMarket(mkt.id)) {
-            return { status: 'closed', label: `Cerrado (Feriado: ${holiday.name})`, colorClass: 'status-closed', dotClass: 'dot-closed', progress: 0, barClass: 'fill-ended', highlightClass: '' };
+            return { status: 'closed', labelId: 'status.closed_holiday', labelParams: [holiday.name], colorClass: 'status-closed', dotClass: 'dot-closed', progress: 0, barClass: 'fill-ended', highlightClass: '' };
         }
         if (holiday.forexClose && isForexMarket(mkt.id)) {
-            return { status: 'closed', label: `Cerrado (Feriado: ${holiday.name})`, colorClass: 'status-closed', dotClass: 'dot-closed', progress: 0, barClass: 'fill-ended', highlightClass: '' };
+            return { status: 'closed', labelId: 'status.closed_holiday', labelParams: [holiday.name], colorClass: 'status-closed', dotClass: 'dot-closed', progress: 0, barClass: 'fill-ended', highlightClass: '' };
         }
     }
 
@@ -136,7 +232,8 @@ function getMarketData(mkt) {
     const closeMins = mkt.close * 60 + (mkt.closeMin || 0);
 
     let status = 'closed';
-    let label = 'Cerrado';
+    let labelId = 'status.closed';
+    let labelParams = [];
     let colorClass = 'status-closed';
     let dotClass = 'dot-closed';
     let progress = 0;
@@ -156,7 +253,8 @@ function getMarketData(mkt) {
 
     if (currentMins >= openMins && currentMins < closeMins) {
         status = 'open';
-        label = 'Mercado abierto';
+        labelId = 'status.open';
+        labelParams = [];
         colorClass = 'status-open';
         dotClass = 'dot-open';
 
@@ -167,14 +265,16 @@ function getMarketData(mkt) {
 
     } else if (currentMins < openMins) {
         status = isPre ? 'soon' : (currentMins >= openMins - 60 ? 'soon' : 'closed');
-        label = isPre ? 'Pre-mercado' : (status === 'soon' ? 'Próxima apertura' : 'Cerrado');
+        labelId = isPre ? 'status.pre_market' : (status === 'soon' ? 'status.upcoming_open' : 'status.closed');
+        labelParams = [];
         colorClass = status === 'soon' ? 'status-soon' : 'status-closed';
         dotClass = status === 'soon' ? 'dot-soon' : 'dot-closed';
         progress = 0;
 
     } else {
         status = isAfter ? 'soon' : 'closed';
-        label = isAfter ? 'Horario extendido' : 'Cerrado';
+        labelId = isAfter ? 'status.extended_hours' : 'status.closed';
+        labelParams = [];
         colorClass = isAfter ? 'status-soon' : 'status-closed';
         dotClass = isAfter ? 'dot-soon' : 'dot-closed';
         progress = 100;
@@ -184,18 +284,20 @@ function getMarketData(mkt) {
     // Adjust labels/flags if today is a holiday with limited FX liquidity or high spreads
     if (holiday && isForexMarket(mkt.id)) {
         if (holiday.forexLimited) {
-            // mark as liquidity-limited (use 'soon' styling to warn)
-            label = 'Liquidez limitada (Feriado)';
+            labelId = 'status.liquidity_limited';
+            labelParams = [];
             colorClass = 'status-soon';
             dotClass = 'dot-soon';
             if (status !== 'open') progress = 0;
         } else if (holiday.forexHighSpreads) {
             if (status === 'open') {
-                label = 'Mercado abierto (Spreads altos)';
+                labelId = 'status.open_high_spreads';
+                labelParams = [];
                 colorClass = 'status-soon';
                 dotClass = 'dot-soon';
             } else {
-                label = `Cerrado (Feriado: ${holiday.name})`;
+                labelId = 'status.closed_holiday';
+                labelParams = [holiday.name];
                 colorClass = 'status-closed';
                 dotClass = 'dot-closed';
                 progress = 0;
@@ -222,17 +324,18 @@ function getMarketData(mkt) {
         }
     }
 
-    return { status, label, colorClass, dotClass, progress: Number(progress.toFixed(1)), barClass, highlightClass };
+    return { status, labelId, labelParams, colorClass, dotClass, progress: Number(progress.toFixed(1)), barClass, highlightClass };
 }
 
 function createCard(mkt) {
     const data = getMarketData(mkt);
+    const statusLabel = t(data.labelId, data.labelParams);
     const localOpen = getFormattedUserTimeFromMarketTime(mkt.open, mkt.openMin || 0, mkt.tz);
     const localClose = getFormattedUserTimeFromMarketTime(mkt.close, mkt.closeMin || 0, mkt.tz);
     const curTime = getTimeInZone(mkt.tz);
     const mktTimeStr = `${curTime.h.toString().padStart(2,'0')}:${curTime.m.toString().padStart(2,'0')}`;
     const holiday = getHolidayForMarket(mkt);
-    const holidayHTML = holiday ? `<div class="holiday-badge">Feriado: ${holiday.name}</div>` : '';
+    const holidayHTML = holiday ? `<div class="holiday-badge">${t('holiday_prefix')} ${holiday.name}</div>` : '';
 
     return `
         <div class="card">
@@ -242,13 +345,13 @@ function createCard(mkt) {
             </div>
 
             <div class="status-badge ${data.colorClass}">
-                <span class="indicator-dot ${data.dotClass}"></span> ${data.label}
+                <span class="indicator-dot ${data.dotClass}"></span> ${statusLabel}
             </div>
 
             <!-- Progress Bar Section -->
             <div class="session-progress">
                 <div class="progress-labels">
-                    <span>Transcurrido</span>
+                    <span>${t('elapsed')}</span>
                     <span>${data.progress}%</span>
                 </div>
                 <div class="progress-track">
@@ -257,27 +360,27 @@ function createCard(mkt) {
             </div>
 
             <div class="time-row">
-                <span class="time-label">Apertura:</span>
+                <span class="time-label">${t('open_label')}</span>
                 <span class="time-value">${localOpen}</span>
             </div>
             <div class="time-row">
-                <span class="time-label">Cierre:</span>
+                <span class="time-label">${t('close_label')}</span>
                 <span class="time-value">${localClose}</span>
             </div>
-            <div class="sub-time">Hora del mercado: ${mktTimeStr}</div>
+            <div class="sub-time">${t('market_time')} ${mktTimeStr}</div>
 
             ${mkt.id === 'nasdaq' ? `
             <div class="nasdaq-info">
                 <div class="info-block">
-                    <div class="info-title">Alta volatilidad</div>
+                    <div class="info-title">${t('nasdaq.high_volatility')}</div>
                     <div class="info-time">9:30 – 10:30</div>
                 </div>
                 <div class="info-block">
-                    <div class="info-title">Zona de calma</div>
+                    <div class="info-title">${t('nasdaq.calm_zone')}</div>
                     <div class="info-time">11:30 – 13:30</div>
                 </div>
                 <div class="info-block">
-                    <div class="info-title">Alta volatilidad</div>
+                    <div class="info-title">${t('nasdaq.high_volatility')}</div>
                     <div class="info-time">15:00 – 16:00</div>
                 </div>
             </div>
@@ -322,6 +425,13 @@ function renderMarkets() {
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize language and UI translations
+    const initial = detectLanguage();
+    setLanguage(initial);
+
+    // No language selector in UI: language is detected automatically and stored in localStorage
+
+    // Initial render
     updateClock();
     renderMarkets();
 
