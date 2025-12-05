@@ -441,3 +441,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (s % 30 === 0 || s === 0) renderMarkets();
     }, 1000);
 });
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js').catch(err => {
+            console.warn('Service worker registration failed:', err);
+        });
+    });
+}
