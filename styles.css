@@ -262,3 +262,16 @@ footer {
 .social-links { display:flex; justify-content:center; gap:18px; margin-top:8px; flex-wrap:wrap; }
 .social-links a { color: var(--text-muted); text-decoration: none; font-weight: 600; display:inline-flex; align-items:center; gap:8px; }
 .social-links a:hover { color: var(--accent-green); }
+
+/* Holiday badge on cards */
+.holiday-badge {
+    margin-top: 12px;
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.08);
+    color: var(--accent-orange);
+    border: 1px solid rgba(245, 158, 11, 0.18);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
