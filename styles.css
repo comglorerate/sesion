@@ -244,6 +244,22 @@ section { margin-bottom: var(--space-8); }
 .fill-active { background: linear-gradient(90deg, var(--accent-strong), var(--accent)); }
 .fill-ended { background-color: var(--text-muted); opacity: 0.45; }
 
+/* Extended / Pre-market styles */
+:root {
+    --accent-purple: #7c3aed; /* morado */
+    --accent-extended-orange: #f97316; /* naranja extendido */
+}
+
+.fill-premarket { background: linear-gradient(90deg, var(--accent-purple), #9f7aea); }
+.fill-extended { background: linear-gradient(90deg, var(--accent-extended-orange), var(--accent-warning)); }
+
+/* Row styles to visually mark pre/after rows */
+.premarket-row .time-label { color: var(--accent-purple); font-weight: 800; }
+.premarket-row .time-value { color: #e9d5ff; font-weight: 800; }
+
+.extended-hours-row .time-label { color: var(--accent-extended-orange); font-weight: 800; }
+.extended-hours-row .time-value { color: #fff7ed; font-weight: 800; }
+
 /* NASDAQ highlight states (applied only during intervals) */
 :root {
     --accent-green-intense: #0f9f58;
