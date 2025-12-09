@@ -14,7 +14,6 @@ const translations = {
             closed_holiday: 'Cerrado (Feriado: {0})',
             open: 'Mercado abierto',
             upcoming_open: 'Próxima apertura',
-            extended_hours: 'Horario extendido',
             liquidity_limited: 'Liquidez limitada (Feriado)',
             open_high_spreads: 'Mercado abierto (Spreads altos)'
         },
@@ -36,7 +35,6 @@ const translations = {
             closed_holiday: 'Closed (Holiday: {0})',
             open: 'Market open',
             upcoming_open: 'Upcoming open',
-            extended_hours: 'Extended hours',
             liquidity_limited: 'Limited liquidity (Holiday)',
             open_high_spreads: 'Market open (High spreads)'
         },
@@ -110,7 +108,7 @@ const stockMarkets = [
     { 
         id: 'nasdaq', name: 'NASDAQ', tz: 'America/New_York', 
         open: 9, openMin: 30, close: 16, closeMin: 0, 
-        afterClose: 20, icon: 'fa-laptop-code', openDays: [1,2,3,4,5]
+        icon: 'fa-laptop-code', openDays: [1,2,3,4,5]
     }
 ];
 
@@ -238,12 +236,7 @@ function getMarketData(mkt) {
     let barClass = 'fill-ended'; // default grey
     let highlightClass = '';
 
-    // Determinar post-session y estado principal (se eliminó pre-mercado)
-    let isAfter = false;
-
-    if (mkt.afterClose) {
-        if (currentMins >= closeMins && currentMins < mkt.afterClose * 60) isAfter = true;
-    }
+    // Determinar estado principal (sin pre-mercado ni sesión extendida)
 
     if (currentMins >= openMins && currentMins < closeMins) {
         status = 'open';
@@ -266,11 +259,12 @@ function getMarketData(mkt) {
         dotClass = status === 'soon' ? 'dot-soon' : 'dot-closed';
         progress = 0;
     } else {
-        status = isAfter ? 'soon' : 'closed';
-        labelId = isAfter ? 'status.extended_hours' : 'status.closed';
+        // Después del cierre: siempre marcar como cerrado (sin sesión extendida)
+        status = 'closed';
+        labelId = 'status.closed';
         labelParams = [];
-        colorClass = isAfter ? 'status-soon' : 'status-closed';
-        dotClass = isAfter ? 'dot-soon' : 'dot-closed';
+        colorClass = 'status-closed';
+        dotClass = 'dot-closed';
         progress = 100;
         barClass = 'fill-ended';
     }
