@@ -13,7 +13,6 @@ const translations = {
             closed: 'Cerrado',
             closed_holiday: 'Cerrado (Feriado: {0})',
             open: 'Mercado abierto',
-            pre_market: 'Pre-mercado',
             upcoming_open: 'Próxima apertura',
             extended_hours: 'Horario extendido',
             liquidity_limited: 'Liquidez limitada (Feriado)',
@@ -22,7 +21,6 @@ const translations = {
         elapsed: 'Transcurrido',
         open_label: 'Apertura:',
         close_label: 'Cierre:',
-        close_regular_suffix: ' (Cierre regular)',
         market_time: 'Hora del mercado:',
         holiday_prefix: 'Feriado:',
         nasdaq: { high_volatility: 'Alta volatilidad', calm_zone: 'Zona de calma' }
@@ -37,7 +35,6 @@ const translations = {
             closed: 'Closed',
             closed_holiday: 'Closed (Holiday: {0})',
             open: 'Market open',
-            pre_market: 'Pre-market',
             upcoming_open: 'Upcoming open',
             extended_hours: 'Extended hours',
             liquidity_limited: 'Limited liquidity (Holiday)',
@@ -46,7 +43,6 @@ const translations = {
         elapsed: 'Elapsed',
         open_label: 'Open:',
         close_label: 'Close:',
-        close_regular_suffix: ' (Regular close)',
         market_time: 'Market time:',
         holiday_prefix: 'Holiday:',
         nasdaq: { high_volatility: 'High volatility', calm_zone: 'Calm zone' }
@@ -114,7 +110,7 @@ const stockMarkets = [
     { 
         id: 'nasdaq', name: 'NASDAQ', tz: 'America/New_York', 
         open: 9, openMin: 30, close: 16, closeMin: 0, 
-        preOpen: 4, afterClose: 20, icon: 'fa-laptop-code', openDays: [1,2,3,4,5]
+        afterClose: 20, icon: 'fa-laptop-code', openDays: [1,2,3,4,5]
     }
 ];
 
@@ -242,13 +238,9 @@ function getMarketData(mkt) {
     let barClass = 'fill-ended'; // default grey
     let highlightClass = '';
 
-    // Determinar pre/post-session y estado principal
-    let isPre = false;
+    // Determinar post-session y estado principal (se eliminó pre-mercado)
     let isAfter = false;
 
-    if (mkt.preOpen) {
-        if (currentMins >= mkt.preOpen * 60 && currentMins < openMins) isPre = true;
-    }
     if (mkt.afterClose) {
         if (currentMins >= closeMins && currentMins < mkt.afterClose * 60) isAfter = true;
     }
@@ -266,59 +258,21 @@ function getMarketData(mkt) {
         barClass = 'fill-active';
 
     } else if (currentMins < openMins) {
-        // Pre-market window: if `preOpen` defined and we're in that window,
-        // compute a relative progress for the pre-market period.
-        if (isPre && mkt.preOpen) {
-            status = 'pre';
-            labelId = 'status.pre_market';
-            labelParams = [];
-            colorClass = 'status-soon';
-            dotClass = 'dot-soon';
-
-            const preStart = mkt.preOpen * 60;
-            const preTotal = openMins - preStart;
-            let preProgress = 0;
-            if (preTotal > 0) {
-                preProgress = Math.max(0, Math.min(100, ((currentMins - preStart) / preTotal) * 100));
-            }
-            progress = Number(preProgress.toFixed(1));
-            barClass = 'fill-premarket';
-        } else {
-            status = isPre ? 'soon' : (currentMins >= openMins - 60 ? 'soon' : 'closed');
-            labelId = isPre ? 'status.pre_market' : (status === 'soon' ? 'status.upcoming_open' : 'status.closed');
-            labelParams = [];
-            colorClass = status === 'soon' ? 'status-soon' : 'status-closed';
-            dotClass = status === 'soon' ? 'dot-soon' : 'dot-closed';
-            progress = 0;
-        }
-
+        // Antes de la apertura: mostrar 'upcoming_open' si falta menos de 60 min, sino 'closed'
+        status = (currentMins >= openMins - 60) ? 'soon' : 'closed';
+        labelId = (status === 'soon') ? 'status.upcoming_open' : 'status.closed';
+        labelParams = [];
+        colorClass = status === 'soon' ? 'status-soon' : 'status-closed';
+        dotClass = status === 'soon' ? 'dot-soon' : 'dot-closed';
+        progress = 0;
     } else {
-        // If we're in after-close period and the market defines `afterClose`,
-        // treat it as extended-hours and compute progress across the extended window.
-        if (isAfter && mkt.afterClose) {
-            status = 'after';
-            labelId = 'status.extended_hours';
-            labelParams = [];
-            colorClass = 'status-soon';
-            dotClass = 'dot-soon';
-
-            const extTotal = (mkt.afterClose * 60) - closeMins;
-            const extElapsed = currentMins - closeMins;
-            let extProgress = 0;
-            if (extTotal > 0) {
-                extProgress = Math.max(0, Math.min(100, (extElapsed / extTotal) * 100));
-            }
-            progress = Number(extProgress.toFixed(1));
-            barClass = 'fill-extended';
-        } else {
-            status = 'closed';
-            labelId = 'status.closed';
-            labelParams = [];
-            colorClass = 'status-closed';
-            dotClass = 'dot-closed';
-            progress = 100;
-            barClass = 'fill-ended';
-        }
+        status = isAfter ? 'soon' : 'closed';
+        labelId = isAfter ? 'status.extended_hours' : 'status.closed';
+        labelParams = [];
+        colorClass = isAfter ? 'status-soon' : 'status-closed';
+        dotClass = isAfter ? 'dot-soon' : 'dot-closed';
+        progress = 100;
+        barClass = 'fill-ended';
     }
 
     // Adjust labels/flags if today is a holiday with limited FX liquidity or high spreads
@@ -372,8 +326,6 @@ function createCard(mkt) {
     const statusLabel = t(data.labelId, data.labelParams);
     const localOpen = getFormattedUserTimeFromMarketTime(mkt.open, mkt.openMin || 0, mkt.tz);
     const localClose = getFormattedUserTimeFromMarketTime(mkt.close, mkt.closeMin || 0, mkt.tz);
-    const afterCloseLocal = (mkt.afterClose) ? getFormattedUserTimeFromMarketTime(mkt.afterClose, 0, mkt.tz) : null;
-    const preOpenLocal = (mkt.preOpen) ? getFormattedUserTimeFromMarketTime(mkt.preOpen, 0, mkt.tz) : null;
     const curTime = getTimeInZone(mkt.tz);
     const mktTimeStr = `${curTime.h.toString().padStart(2,'0')}:${curTime.m.toString().padStart(2,'0')}`;
     const holiday = getHolidayForMarket(mkt);
@@ -409,19 +361,6 @@ function createCard(mkt) {
                 <span class="time-label">${t('close_label')}</span>
                 <span class="time-value">${localClose}</span>
             </div>
-            ${data.labelId === 'status.extended_hours' && afterCloseLocal ? `
-            <div class="time-row extended-hours-row">
-                <span class="time-label">${t('status.extended_hours')}</span>
-                <span class="time-value">${afterCloseLocal}</span>
-            </div>
-            ` : ''}
-
-            ${data.labelId === 'status.pre_market' && preOpenLocal ? `
-            <div class="time-row premarket-row">
-                <span class="time-label">${t('status.pre_market')}</span>
-                <span class="time-value">${preOpenLocal}</span>
-            </div>
-            ` : ''}
             <div class="sub-time">${t('market_time')} ${mktTimeStr}</div>
 
             ${mkt.id === 'nasdaq' ? `
