@@ -1,5 +1,4 @@
 // Centralized application JS (extracted from inline script)
-const APP_VERSION = '1.0.0';
 
 // --- Internationalization (ES / EN) ---
 const translations = {
@@ -312,17 +311,27 @@ function getMarketData(mkt) {
         }
     }
 
-    return { status, labelId, labelParams, colorClass, dotClass, progress: Number(progress.toFixed(1)), barClass, highlightClass };
+    return {
+        status,
+        labelId,
+        labelParams,
+        colorClass,
+        dotClass,
+        progress: Number(progress.toFixed(1)),
+        barClass,
+        highlightClass,
+        nowZone,
+        holiday
+    };
 }
 
-function createCard(mkt) {
-    const data = getMarketData(mkt);
+function createCard(mkt, data) {
+    // data is precomputed in renderMarkets to avoid duplicate work
     const statusLabel = t(data.labelId, data.labelParams);
     const localOpen = getFormattedUserTimeFromMarketTime(mkt.open, mkt.openMin || 0, mkt.tz);
     const localClose = getFormattedUserTimeFromMarketTime(mkt.close, mkt.closeMin || 0, mkt.tz);
-    const curTime = getTimeInZone(mkt.tz);
-    const mktTimeStr = `${curTime.h.toString().padStart(2,'0')}:${curTime.m.toString().padStart(2,'0')}`;
-    const holiday = getHolidayForMarket(mkt);
+    const mktTimeStr = data.nowZone ? `${data.nowZone.h.toString().padStart(2,'0')}:${data.nowZone.m.toString().padStart(2,'0')}` : '';
+    const holiday = data.holiday;
     const holidayHTML = holiday ? `<div class="holiday-badge">${t('holiday_prefix')} ${holiday.name}</div>` : '';
 
     return `
@@ -390,20 +399,19 @@ function renderMarkets() {
     const forexContainer = document.getElementById('forex-grid');
     const stocksContainer = document.getElementById('stocks-grid');
 
-    const forexSorted = [...forexMarkets].sort((a, b) => {
-        const da = getMarketData(a);
-        const db = getMarketData(b);
-        if (da.status === 'open' && db.status !== 'open') return -1;
-        if (db.status === 'open' && da.status !== 'open') return 1;
+    const forexData = forexMarkets.map(mkt => ({ mkt, data: getMarketData(mkt) }));
+    const stocksData = stockMarkets.map(mkt => ({ mkt, data: getMarketData(mkt) }));
+
+    const forexSorted = forexData.sort((a, b) => {
+        if (a.data.status === 'open' && b.data.status !== 'open') return -1;
+        if (b.data.status === 'open' && a.data.status !== 'open') return 1;
         return 0;
     });
 
-    let forexHTML = '';
-    forexSorted.forEach(m => forexHTML += createCard(m));
+    const forexHTML = forexSorted.map(entry => createCard(entry.mkt, entry.data)).join('');
     if (forexContainer) forexContainer.innerHTML = forexHTML;
 
-    let stocksHTML = '';
-    stockMarkets.forEach(m => stocksHTML += createCard(m));
+    const stocksHTML = stocksData.map(entry => createCard(entry.mkt, entry.data)).join('');
     if (stocksContainer) stocksContainer.innerHTML = stocksHTML;
 
     // Apply widths after DOM insertion (avoid inline style in HTML)
