@@ -132,22 +132,16 @@ function formatLocalTime(dateObj) {
     return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(dateObj);
 }
 
-// Returns { h, m, dayOfWeek } in the Target Timezone
+// Returns { h, m, dayOfWeek } in the Target Timezone (DST-safe via TzUtils)
 function getTimeInZone(timeZone) {
-    const now = new Date();
-    const str = now.toLocaleString('en-US', { timeZone: timeZone, hour12: false });
-    const [date, time] = str.split(', ');
-    const [h, m] = time.split(':').map(Number);
-    const targetDate = new Date(str);
-    return { h, m, dayOfWeek: targetDate.getDay() };
+    const p = TzUtils.getZonedParts(Date.now(), timeZone);
+    return { h: p.hour, m: p.minute, dayOfWeek: p.weekdayIndex };
 }
 
 // Returns local date components in target timezone: { year, month, day }
 function getDateInZone(timeZone) {
-    const now = new Date();
-    const str = now.toLocaleString('en-US', { timeZone: timeZone, hour12: false });
-    const d = new Date(str);
-    return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
+    const p = TzUtils.getZonedParts(Date.now(), timeZone);
+    return { year: p.year, month: p.month, day: p.day };
 }
 
 function isStockMarket(id) {
@@ -176,19 +170,18 @@ function getHolidayForMarket(mkt) {
     return null;
 }
 
-// Helper to display market time converted to User Local Time
+// Helper to display market time converted to User Local Time (DST-safe)
 function getFormattedUserTimeFromMarketTime(h, m, tz) {
-    const nowLocal = new Date();
-    const nowMarketStr = nowLocal.toLocaleString('en-US', { timeZone: tz });
-    const nowMarket = new Date(nowMarketStr);
-    const diffMs = nowMarket - nowLocal;
-
-    const targetMarketDate = new Date(nowMarket);
-    targetMarketDate.setHours(h, m, 0);
-
-    // Subtract offset to get local time equivalent
-    const targetLocalDate = new Date(targetMarketDate.getTime() - diffMs);
-    return formatLocalTime(targetLocalDate);
+    const today = TzUtils.getZonedParts(Date.now(), tz);
+    const utcInstant = TzUtils.zonedTimeToUtc({
+        year: today.year,
+        month: today.month,
+        day: today.day,
+        hour: h,
+        minute: m,
+        second: 0
+    }, tz);
+    return formatLocalTime(utcInstant);
 }
 
 // --- Core Logic ---
