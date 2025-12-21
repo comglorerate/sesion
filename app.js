@@ -99,7 +99,8 @@ function translatePage(root=document) {
 const forexMarkets = [
     { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney', open: 7, close: 16, icon: 'fa-earth-oceania', openDays: [0,1,2,3,4,5] },
     { id: 'tokyo', name: 'Tokyo', tz: 'Asia/Tokyo', open: 9, close: 18, icon: 'fa-yen-sign', openDays: [0,1,2,3,4,5] },
-    { id: 'london', name: 'London', tz: 'Europe/London', open: 8, close: 17, icon: 'fa-sterling-sign', openDays: [0,1,2,3,4,5] },
+    // London should be Mon-Fri local business hours; exclude Sunday (0)
+    { id: 'london', name: 'London', tz: 'Europe/London', open: 8, close: 17, icon: 'fa-sterling-sign', openDays: [1,2,3,4,5] },
     { id: 'ny', name: 'New York', tz: 'America/New_York', open: 8, close: 17, icon: 'fa-dollar-sign', openDays: [1,2,3,4,5] }
 ];
 
