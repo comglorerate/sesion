@@ -122,8 +122,10 @@ const stockMarkets = [
 //  - closeStockIds: array de ids de mercados de acciones afectados
 //  - name/description
 const holidays = [
-    { month: 12, day: 24, name: 'Nochebuena', stocksClose: true, forexClose: true, description: 'Cierre oficial para bolsas y operaciones FX en la mayoría de los centros financieros' },
-    { month: 12, day: 31, name: 'Año Nuevo (Fin de año)', stocksClose: true, forexClose: true, description: 'Año nuevo - feriado global' },
+    { month: 12, day: 24, name: 'Nochebuena', stocksClose: false, stocksEarlyClose: { hour: 13, minute: 0 }, forexLimited: true, description: 'Nochebuena - Cierre temprano en algunos mercados' },
+    { month: 12, day: 25, name: 'Navidad', stocksClose: true, forexClose: true, description: 'Navidad - Mercados cerrados' },
+    { month: 12, day: 31, name: 'Fin de año', stocksClose: false, forexLimited: true, description: 'Fin de año - Operatoria normal o cierre temprano' },
+    { month: 1, day: 1, name: 'Año Nuevo', stocksClose: true, forexClose: true, description: 'Año Nuevo - Mercados cerrados' },
     { month: 7, day: 4, name: 'Independencia EE. UU.', closeStockIds: ['nasdaq'], forexLimited: true, description: 'Wall Street cierra; FX mantiene liquidez limitada' },
     { month: 11, day: 25, name: 'Acción de Gracias', stocksClose: true, forexHighSpreads: true, description: 'Bolsa cerrada. Algunas sesiones FX operan con spreads más altos' }
 ];
@@ -218,7 +220,12 @@ function getMarketData(mkt) {
     }
 
     const openMins = mkt.open * 60 + (mkt.openMin || 0);
-    const closeMins = mkt.close * 60 + (mkt.closeMin || 0);
+    let closeMins = mkt.close * 60 + (mkt.closeMin || 0);
+
+    // Handle early close for stocks
+    if (holiday && holiday.stocksEarlyClose && isStockMarket(mkt.id)) {
+        closeMins = holiday.stocksEarlyClose.hour * 60 + holiday.stocksEarlyClose.minute;
+    }
 
     let status = 'closed';
     let labelId = 'status.closed';
