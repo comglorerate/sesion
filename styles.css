@@ -11,6 +11,8 @@
     --accent-strong: #1fb86a;
     --accent-warning: #f59e0b;
     --accent-danger: #ef4444;
+    --accent-info: #38bdf8;          /* azul cielo para "soon" / próxima apertura */
+    --accent-purple: #8b5cf6;        /* violeta tranquilo para "calm zone" */
     --border: #23314f;
     --shadow-strong: 0 20px 45px rgba(0, 0, 0, 0.35);
     --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.22);
@@ -39,9 +41,14 @@ body {
     min-height: 100vh;
     padding-bottom: 60px;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 a { color: inherit; }
+
+/* Utilidad genérica */
+.hidden { display: none !important; }
 
 /* --- Header --- */
 header {
@@ -109,7 +116,8 @@ h1 {
     margin-top: var(--space-2);
 }
 
-.user-info span {
+.user-info > span,
+.user-info > .user-info-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -119,6 +127,208 @@ h1 {
     background: rgba(46, 204, 113, 0.08);
     color: var(--text);
     font-weight: 600;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1;
+}
+
+.user-info-btn {
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.user-info-btn:hover {
+    background: rgba(46, 204, 113, 0.16);
+    border-color: rgba(46, 204, 113, 0.55);
+}
+.user-info-btn:active { transform: scale(0.98); }
+.user-info-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+.user-info-btn .chevron {
+    font-size: 0.7rem;
+    opacity: 0.65;
+    margin-left: 2px;
+}
+
+/* --- Modal de zona horaria --- */
+.tz-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8, 12, 22, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: var(--space-3);
+    animation: tz-fade-in 0.18s ease-out;
+}
+@keyframes tz-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.tz-modal-card {
+    width: 100%;
+    max-width: 480px;
+    max-height: min(640px, 90vh);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-strong);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: tz-pop 0.22s cubic-bezier(0.21, 1.02, 0.42, 1.01);
+}
+@keyframes tz-pop {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tz-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border);
+}
+.tz-modal-header h3 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+.tz-modal-header button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+.tz-modal-header button:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+
+.tz-search-wrap {
+    position: relative;
+    padding: var(--space-3) var(--space-5);
+}
+.tz-search-wrap i {
+    position: absolute;
+    left: calc(var(--space-5) + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+.tz-search-wrap input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tz-search-wrap input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.18);
+}
+.tz-search-wrap input::placeholder { color: var(--text-muted); }
+
+.tz-modal-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 var(--space-3) var(--space-3);
+    scrollbar-width: thin;
+}
+.tz-group-title {
+    padding: var(--space-3) var(--space-3) 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+.tz-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.92rem;
+    text-align: left;
+    transition: background 0.12s ease;
+}
+.tz-item:hover { background: rgba(255, 255, 255, 0.03); }
+.tz-item.is-selected {
+    background: rgba(46, 204, 113, 0.12);
+    color: var(--accent);
+}
+.tz-item .tz-item-name { font-weight: 600; }
+.tz-item .tz-item-offset {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.tz-item.is-selected .tz-item-offset { color: var(--accent); }
+
+.tz-empty {
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.tz-reset-btn {
+    margin: 0 var(--space-5) var(--space-4);
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+.tz-reset-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 480px) {
+    .tz-modal { padding: 0; align-items: flex-end; }
+    .tz-modal-card {
+        max-height: 90vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        animation: tz-slide-up 0.24s cubic-bezier(0.21, 1.02, 0.42, 1.01);
+    }
+    @keyframes tz-slide-up {
+        from { opacity: 0; transform: translateY(40px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
 }
 
 /* --- Layout --- */
@@ -182,7 +392,7 @@ section { margin-bottom: var(--space-8); }
 .market-name { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
 .market-icon { font-size: 1.4rem; color: var(--text-muted); }
 
-/* --- Status --- */
+/* --- Status badge --- */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -210,13 +420,21 @@ section { margin-bottom: var(--space-8); }
     border-color: rgba(239, 68, 68, 0.35);
 }
 
+/* "soon" = a punto de abrir (azul informativo, distinto de warning amarillo) */
 .status-soon {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: var(--accent-warning);
-    border-color: rgba(245, 158, 11, 0.35);
+    background-color: rgba(56, 189, 248, 0.12);
+    color: var(--accent-info);
+    border-color: rgba(56, 189, 248, 0.4);
 }
 
-/* --- Progress Bar --- */
+/* "limited" = liquidez limitada o spreads altos por feriado (amarillo de aviso) */
+.status-limited {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: var(--accent-warning);
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+/* --- Progress bar --- */
 .session-progress { margin-bottom: var(--space-4); }
 
 .progress-labels {
@@ -244,53 +462,47 @@ section { margin-bottom: var(--space-8); }
 .fill-active { background: linear-gradient(90deg, var(--accent-strong), var(--accent)); }
 .fill-ended { background-color: var(--text-muted); opacity: 0.45; }
 
-/* Extended / Pre-market styles */
-:root {
-    --accent-purple: #7c3aed; /* morado */
-    --accent-extended-orange: #f97316; /* naranja extendido */
+/* Resaltado de ventanas de mercado */
+.highlight-volatile {
+    background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+    box-shadow: 0 0 12px rgba(46, 204, 113, 0.45);
+}
+.highlight-calm {
+    /* Violeta sereno → comunica "tranquilidad" sin parecer warning */
+    background: linear-gradient(90deg, var(--accent-purple), #a78bfa);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.35);
 }
 
-.fill-premarket { background: linear-gradient(90deg, var(--accent-purple), #9f7aea); }
-.fill-extended { background: linear-gradient(90deg, var(--accent-extended-orange), var(--accent-warning)); }
-
-/* Row styles to visually mark pre/after rows */
-.premarket-row .time-label { color: var(--accent-purple); font-weight: 800; }
-.premarket-row .time-value { color: #e9d5ff; font-weight: 800; }
-
-.extended-hours-row .time-label { color: var(--accent-extended-orange); font-weight: 800; }
-.extended-hours-row .time-value { color: #fff7ed; font-weight: 800; }
-
-/* NASDAQ highlight states (applied only during intervals) */
-:root {
-    --accent-green-intense: #0f9f58;
-    --accent-yellow: #f6c344;
-    --accent-orange: #ef7a1a;
-}
-
-.highlight-morning { background-color: var(--accent); }
-.highlight-midday { background: linear-gradient(90deg, var(--accent-yellow), var(--accent-orange)); }
-.highlight-afternoon { background-color: var(--accent-green-intense); }
-
-/* NASDAQ info block styles */
-.nasdaq-info {
+/* --- Ventanas internas (NASDAQ etc) --- */
+.market-windows {
     margin-top: var(--space-3);
     display: flex;
     gap: var(--space-3);
     flex-wrap: wrap;
 }
 
-.nasdaq-info .info-block {
+.market-windows .info-block {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border);
     padding: 10px 12px;
     border-radius: var(--radius-sm);
-    min-width: 150px;
+    flex: 1 1 140px;
+    min-width: 140px;
 }
 
-.nasdaq-info .info-title { font-weight: 700; color: var(--text); margin-bottom: 6px; }
-.nasdaq-info .info-time { color: var(--text-muted); font-size: 0.95rem; }
+.market-windows .info-title {
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+}
+.market-windows .info-time {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+}
 
-/* --- Time Details --- */
+/* --- Time details --- */
 .time-row {
     display: flex;
     justify-content: space-between;
@@ -299,7 +511,7 @@ section { margin-bottom: var(--space-8); }
 }
 
 .time-label { color: var(--text-muted); }
-.time-value { font-weight: 650; color: var(--text); }
+.time-value { font-weight: 650; color: var(--text); font-variant-numeric: tabular-nums; }
 
 .sub-time {
     font-size: 0.85rem;
@@ -307,12 +519,13 @@ section { margin-bottom: var(--space-8); }
     margin-top: var(--space-4);
     padding-top: var(--space-3);
     border-top: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
 }
 
-/* --- Pulse Animation --- */
+/* --- Pulse indicator --- */
 @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.45); }
-    70% { box-shadow: 0 0 0 12px rgba(46, 204, 113, 0); }
+    0%   { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.45); }
+    70%  { box-shadow: 0 0 0 12px rgba(46, 204, 113, 0); }
     100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
 }
 
@@ -321,27 +534,315 @@ section { margin-bottom: var(--space-8); }
     width: 10px;
     border-radius: 50%;
     display: inline-block;
+    flex-shrink: 0;
 }
 
-.dot-open { background-color: var(--accent); animation: pulse 2s infinite; }
-.dot-closed { background-color: var(--accent-danger); }
-.dot-soon { background-color: var(--accent-warning); }
+.dot-open    { background-color: var(--accent); animation: pulse 2s infinite; }
+.dot-closed  { background-color: var(--accent-danger); }
+.dot-soon    { background-color: var(--accent-info); }
+.dot-limited { background-color: var(--accent-warning); }
 
-/* --- Footer --- */
-footer {
-    margin-top: var(--space-8);
-    padding: var(--space-5) var(--space-4);
+@media (prefers-reduced-motion: reduce) {
+    .dot-open { animation: none; }
+    .progress-fill { transition: none; }
+    .card { transition: none; }
+}
+
+/* --- Countdown chip --- */
+.countdown-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 11px;
+    margin-bottom: var(--space-3);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-soft);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.005em;
+}
+.countdown-chip i { font-size: 0.78rem; opacity: 0.85; }
+.countdown-chip.countdown-closes {
+    background: rgba(46, 204, 113, 0.08);
+    border-color: rgba(46, 204, 113, 0.25);
+    color: var(--accent);
+}
+.countdown-chip.countdown-opens {
+    background: rgba(56, 189, 248, 0.08);
+    border-color: rgba(56, 189, 248, 0.25);
+    color: var(--accent-info);
+}
+
+/* --- Timeline de Forex (sección propia) --- */
+.timeline-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 60%), var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-soft);
+}
+.timeline-svg-wrap {
+    width: 100%;
+    border-radius: var(--radius-md);
+    position: relative;
+    cursor: crosshair;
+    /* tabIndex está puesto por JS — outline visible al focus por teclado */
+}
+.timeline-svg-wrap:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.timeline-svg-wrap svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* Línea fantasma que sigue al cursor durante el scrub */
+.timeline-ghost {
+    position: absolute;
+    top: 4px;
+    bottom: 26px;       /* deja libre la fila de horas (00:00, 03:00 ...) */
+    width: 0;
+    border-left: 2px dashed var(--accent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease, left 0.04s linear;
+    transform: translateX(-1px);
+    z-index: 2;
+}
+.timeline-ghost.is-active { opacity: 0.9; }
+.timeline-ghost::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.25);
+}
+
+/* Tooltip flotante con la hora + sesiones */
+.timeline-tooltip {
+    position: absolute;
+    top: -4px;
+    transform: translate(-50%, -100%);
+    background: var(--bg-muted);
+    border: 1px solid rgba(46, 204, 113, 0.45);
+    border-radius: var(--radius-sm);
+    padding: 7px 11px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease, left 0.04s linear;
+    white-space: nowrap;
+    z-index: 3;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    min-width: 84px;
     text-align: center;
+}
+.timeline-tooltip.is-active { opacity: 1; }
+.timeline-tooltip::after {
+    /* Pequeña flechita apuntando a la línea */
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    background: var(--bg-muted);
+    border-right: 1px solid rgba(46, 204, 113, 0.45);
+    border-bottom: 1px solid rgba(46, 204, 113, 0.45);
+}
+.timeline-tooltip .tt-time {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+.timeline-tooltip .tt-sessions {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+    font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .timeline-ghost, .timeline-tooltip { transition: opacity 0.12s ease; }
+}
+
+@media (max-width: 480px) {
+    .timeline-tooltip { padding: 6px 9px; }
+    .timeline-tooltip .tt-time { font-size: 0.85rem; }
+    .timeline-tooltip .tt-sessions { font-size: 0.66rem; }
+}
+.timeline-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+    padding-top: var(--space-2);
     border-top: 1px solid var(--border);
+}
+.timeline-legend .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-soft);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.timeline-legend .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+}
+@media (max-width: 640px) {
+    .timeline-card { padding: var(--space-4) var(--space-3) var(--space-3); }
+    .timeline-svg-wrap svg { min-height: 160px; }
+}
+
+/* --- Crypto card --- */
+.crypto-card .market-icon {
+    color: #f7931a; /* Bitcoin orange */
+}
+
+.crypto-card .status-badge.status-open {
+    background-color: rgba(247, 147, 26, 0.12);
+    color: #f7931a;
+    border-color: rgba(247, 147, 26, 0.38);
+}
+.crypto-card .dot-open {
+    background-color: #f7931a;
+    animation: pulse-orange 2s infinite;
+}
+@keyframes pulse-orange {
+    0%   { box-shadow: 0 0 0 0 rgba(247, 147, 26, 0.45); }
+    70%  { box-shadow: 0 0 0 12px rgba(247, 147, 26, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(247, 147, 26, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .crypto-card .dot-open { animation: none; }
+}
+
+.liquidity-section {
+    margin: var(--space-3) 0;
+    padding: var(--space-3);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+.liquidity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+}
+.liquidity-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     color: var(--text-muted);
 }
+.liquidity-value {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+.liquidity-track {
+    height: 8px;
+    width: 100%;
+    background-color: var(--bar-bg);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.liquidity-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.45s cubic-bezier(0.21, 1.02, 0.42, 1.01);
+    background: var(--text-muted);
+}
+.liquidity-window {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    font-weight: 600;
+}
 
-.footer-brand { color: var(--text); font-weight: 700; display: block; margin-bottom: 8px; }
-.social-links { display:flex; justify-content:center; gap:18px; margin-top:8px; flex-wrap:wrap; }
-.social-links a { color: var(--text-muted); text-decoration: none; font-weight: 600; display:inline-flex; align-items:center; gap:8px; }
-.social-links a:hover { color: var(--accent); }
+/* Niveles de liquidez (color de barra y dots de leyenda) */
+.crypto-level-high   { background: linear-gradient(90deg, #16a34a, #2ecc71); }
+.crypto-level-mhigh  { background: linear-gradient(90deg, #65a30d, #a3e635); }
+.crypto-level-medium { background: linear-gradient(90deg, #ca8a04, #facc15); }
+.crypto-level-low    { background: linear-gradient(90deg, #dc2626, #ef4444); }
 
-/* Holiday badge on cards */
+/* Cuando la clase se aplica al texto del nivel: solo color, sin gradient bg */
+.liquidity-value.crypto-level-high   { background: none; color: var(--accent); }
+.liquidity-value.crypto-level-mhigh  { background: none; color: #a3e635; }
+.liquidity-value.crypto-level-medium { background: none; color: #facc15; }
+.liquidity-value.crypto-level-low    { background: none; color: var(--accent-danger); }
+
+/* Tabla de referencia de ventanas */
+.crypto-windows-ref {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border);
+}
+.crypto-windows-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+.cw-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    font-size: 0.86rem;
+}
+.cw-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.cw-dot.crypto-level-high   { background: #2ecc71; }
+.cw-dot.crypto-level-mhigh  { background: #a3e635; }
+.cw-dot.crypto-level-medium { background: #facc15; }
+.cw-dot.crypto-level-low    { background: #ef4444; }
+.cw-time {
+    color: var(--text);
+    font-weight: 700;
+    min-width: 100px;
+    font-variant-numeric: tabular-nums;
+}
+.cw-label { color: var(--text-muted); }
+
+.crypto-tip {
+    margin-top: var(--space-3);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(247, 147, 26, 0.06);
+    border: 1px solid rgba(247, 147, 26, 0.2);
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+/* La card de Cripto usa el mismo grid que el resto (.market-grid):
+   con una sola card, ocupa todo el ancho disponible — igual que NASDAQ */
+
+/* --- Holiday + early close --- */
 .holiday-badge {
     margin-top: 12px;
     display: inline-block;
@@ -349,9 +850,23 @@ footer {
     border-radius: var(--radius-sm);
     background: rgba(245, 158, 11, 0.1);
     color: var(--accent-warning);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(245, 158, 11, 0.25);
     font-weight: 700;
     font-size: 0.92rem;
+}
+
+.early-close-note {
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(56, 189, 248, 0.08);
+    color: var(--accent-info);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    font-weight: 700;
+    font-size: 0.85rem;
 }
 
 /* --- Responsive --- */
@@ -373,4 +888,5 @@ footer {
     .market-name { font-size: 1.15rem; }
     .user-info { flex-direction: column; align-items: center; }
     .nav-button { width: 100%; justify-content: center; }
+    .market-windows .info-block { flex: 1 1 100%; }
 }

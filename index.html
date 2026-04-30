@@ -2,21 +2,24 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Horarios de Mercados Financieros</title>
     <meta name="theme-color" content="#0f111f">
+    <meta name="description" content="Sesiones y horarios de los principales mercados de acciones y divisas, con estado en vivo, festivos y ventanas de volatilidad.">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+    <meta name="apple-mobile-web-app-title" content="Sesión">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Centralized styles (extracted from inline) -->
-    <link rel="stylesheet" href="styles.css?v=1.0.0">
+
+    <link rel="stylesheet" href="styles.css?v=2.0.0">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
     <link rel="apple-touch-icon" href="icons/icon-192.svg">
@@ -24,54 +27,111 @@
 <body>
 
     <header>
-        <h1><i class="fa-solid fa-chart-line"></i> <span data-i18n="title">Horarios de Mercados Financieros</span></h1>
+        <h1>
+            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+            <span data-i18n="title">Horarios de Mercados Financieros</span>
+        </h1>
 
         <nav class="top-nav" role="navigation" aria-label="Navegación principal">
-            <a class="nav-button" href="https://trading-calculadora.netlify.app/" target="_blank" rel="noopener noreferrer" title="Abrir Calculadora">
-                <i class="fa-solid fa-calculator"></i>
+            <a class="nav-button" href="https://trading-calculadora.netlify.app/"
+               target="_blank" rel="noopener noreferrer"
+               data-i18n-title="nav.calculator_open"
+               data-i18n-aria-label="nav.calculator_open">
+                <i class="fa-solid fa-calculator" aria-hidden="true"></i>
                 <span data-i18n="nav.calculator">Calculadora</span>
             </a>
-            <a class="nav-button" href="https://trading-jornada.netlify.app/" target="_blank" rel="noopener noreferrer" title="Abrir Journal">
-                <i class="fa-solid fa-book"></i>
+            <a class="nav-button" href="https://trading-jornada.netlify.app/"
+               target="_blank" rel="noopener noreferrer"
+               data-i18n-title="nav.journal_open"
+               data-i18n-aria-label="nav.journal_open">
+                <i class="fa-solid fa-book" aria-hidden="true"></i>
                 <span data-i18n="nav.journal">Journal</span>
             </a>
         </nav>
 
-        
-
         <div class="user-info">
-            <span id="user-timezone"><i class="fa-solid fa-globe"></i> <span data-i18n="detecting">Detectando...</span></span>
-            <span id="user-clock"><i class="fa-regular fa-clock"></i> --:--:--</span>
+            <button type="button" id="user-timezone" class="user-info-btn" data-i18n-aria-label="tz_picker.open" aria-haspopup="dialog">
+                <i class="fa-solid fa-globe" aria-hidden="true"></i>
+                <span id="user-timezone-text" data-i18n="detecting">Detectando...</span>
+                <i class="fa-solid fa-chevron-down chevron" aria-hidden="true"></i>
+            </button>
+            <span id="user-clock">
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                <span id="user-clock-text">--:--:--</span>
+            </span>
         </div>
     </header>
 
-    <div class="container">
+    <!-- Modal de zona horaria -->
+    <div id="tz-modal" class="tz-modal hidden" role="dialog" aria-modal="true" aria-labelledby="tz-modal-title">
+        <div class="tz-modal-card">
+            <div class="tz-modal-header">
+                <h3 id="tz-modal-title" data-i18n="tz_picker.title">Seleccionar zona horaria</h3>
+                <button type="button" id="tz-modal-close" data-i18n-aria-label="tz_picker.close" aria-label="Cerrar">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="tz-search-wrap">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" id="tz-search" data-i18n-placeholder="tz_picker.search_placeholder" placeholder="Buscar ciudad o zona..." autocomplete="off" />
+            </div>
+            <div class="tz-modal-list" id="tz-list" role="listbox"></div>
+            <button type="button" id="tz-reset" class="tz-reset-btn" data-i18n="tz_picker.use_system">
+                Usar zona horaria del sistema
+            </button>
+        </div>
+    </div>
 
-        <!-- STOCKS -->
-        <section>
+    <main class="container">
+
+        <!-- 1) CRYPTO -->
+        <section aria-labelledby="crypto-heading">
             <div class="section-header">
-                    <h2><span data-i18n="stocks.title">Bolsa de Valores de EE. UU</span></h2>
-                    <p>(<span data-i18n="stocks.subtitle">Mercado de Acciones</span>)</p>
+                <h2 id="crypto-heading"><span data-i18n="crypto.title">Cripto</span></h2>
+                <p>(<span data-i18n="crypto.subtitle">Mercado 24/7</span>)</p>
+            </div>
+            <div class="market-grid" id="crypto-grid"></div>
+        </section>
+
+        <!-- 2) SOLAPAMIENTO DE SESIONES (timeline) — sección propia -->
+        <section aria-labelledby="timeline-heading">
+            <div class="section-header">
+                <h2 id="timeline-heading"><span data-i18n="timeline.title">Solapamiento de sesiones (Forex)</span></h2>
+            </div>
+            <div class="timeline-card">
+                <div id="forex-timeline" class="timeline-svg-wrap" role="img" aria-label="Timeline de sesiones de Forex">
+                    <div id="forex-timeline-svg"></div>
+                    <div id="timeline-ghost" class="timeline-ghost" aria-hidden="true"></div>
+                    <div id="timeline-tooltip" class="timeline-tooltip" aria-hidden="true">
+                        <div class="tt-time tabular-nums">--:--</div>
+                        <div class="tt-sessions"></div>
+                    </div>
                 </div>
+                <div class="timeline-legend" id="forex-timeline-legend"></div>
+            </div>
+        </section>
+
+        <!-- 3) STOCKS -->
+        <section aria-labelledby="stocks-heading">
+            <div class="section-header">
+                <h2 id="stocks-heading"><span data-i18n="stocks.title">Bolsa de Valores de EE. UU</span></h2>
+                <p>(<span data-i18n="stocks.subtitle">Mercado de Acciones</span>)</p>
+            </div>
             <div class="market-grid" id="stocks-grid"></div>
         </section>
 
-        <!-- FOREX -->
-        <section>
+        <!-- 4) FOREX -->
+        <section aria-labelledby="forex-heading">
             <div class="section-header">
-                    <h2><span data-i18n="forex.title">Sesión de Forex</span></h2>
-                    <p>(<span data-i18n="forex.subtitle">Mercado de Divisas</span>)</p>
-                </div>
+                <h2 id="forex-heading"><span data-i18n="forex.title">Sesión de Forex</span></h2>
+                <p>(<span data-i18n="forex.subtitle">Mercado de Divisas</span>)</p>
+            </div>
             <div class="market-grid" id="forex-grid"></div>
         </section>
 
-    </div>
+    </main>
 
-    <script src="tz-utils.js?v=1.0.0" defer></script>
-    <script src="app.js?v=1.0.0" defer></script>
-    
-    <footer>
-
-    </footer>
+    <script src="tz-utils.js?v=2.0.0" defer></script>
+    <script src="app.js?v=2.0.0" defer></script>
 </body>
 </html>
