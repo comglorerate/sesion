@@ -842,6 +842,165 @@ section { margin-bottom: var(--space-8); }
 /* La card de Cripto usa el mismo grid que el resto (.market-grid):
    con una sola card, ocupa todo el ancho disponible — igual que NASDAQ */
 
+/* --- Eventos macro / Noticias --- */
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-4);
+}
+.news-disclaimer {
+    grid-column: 1 / -1;
+    margin-top: var(--space-3);
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.news-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 60%), var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.news-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-strong);
+    border-color: rgba(46, 204, 113, 0.4);
+}
+
+.news-card.impact-max  { border-top: 3px solid var(--accent-danger); }
+.news-card.impact-high { border-top: 3px solid var(--accent-warning); }
+
+.news-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+.news-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+.news-title i { color: var(--accent); font-size: 1rem; }
+.news-card.impact-max .news-title i  { color: var(--accent-danger); }
+.news-card.impact-high .news-title i { color: var(--accent-warning); }
+
+.news-impact {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.news-card.impact-max .news-impact {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--accent-danger);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.news-card.impact-high .news-impact {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--accent-warning);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.news-long {
+    color: var(--text-soft);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.news-when {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    font-size: 0.85rem;
+    font-weight: 600;
+    align-self: flex-start;
+}
+.news-when i { color: var(--text-muted); font-size: 0.85rem; }
+
+.news-next-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+.news-next-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+}
+.news-next-date {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.news-countdown {
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.news-why {
+    margin-top: auto; /* empuja al fondo del card si las cards tienen alturas distintas */
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(46, 204, 113, 0.06);
+    border-left: 3px solid var(--accent);
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--text-soft);
+}
+.news-why strong {
+    display: block;
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+}
+
+@media (max-width: 640px) {
+    .news-card { padding: var(--space-4); }
+    .news-title { font-size: 1.05rem; }
+    .news-impact { font-size: 0.62rem; padding: 3px 8px; }
+}
+
+/* Smooth scroll para anchor links del nav */
+html { scroll-behavior: smooth; }
+
+/* Offset cuando saltas a una sección con anchor (para que no quede pegado al header) */
+section[id] { scroll-margin-top: 24px; }
+
 /* --- Holiday + early close --- */
 .holiday-badge {
     margin-top: 12px;

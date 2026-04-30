@@ -6,7 +6,7 @@
 const translations = {
     es: {
         title: 'Horarios de Mercados Financieros',
-        nav: { calculator: 'Calculadora', journal: 'Journal', calculator_open: 'Abrir Calculadora', journal_open: 'Abrir Journal' },
+        nav: { calculator: 'Calculadora', journal: 'Journal', news: 'Noticias', calculator_open: 'Abrir Calculadora', journal_open: 'Abrir Journal', news_open: 'Ver eventos macro' },
         detecting: 'Detectando...',
         stocks: { title: 'Bolsa de Valores de EE. UU', subtitle: 'Mercado de Acciones' },
         forex: { title: 'Sesión de Forex', subtitle: 'Mercado de Divisas' },
@@ -51,6 +51,43 @@ const translations = {
             ny_time: 'Hora NY:',
             tip: 'Tip: el cripto sigue los flujos institucionales — concentra tu trading en estas horas.'
         },
+        news: {
+            title: 'Eventos macro',
+            subtitle: 'Noticias económicas que mueven al cripto y al mercado en general',
+            impact_max: 'Impacto máximo',
+            impact_high: 'Impacto alto',
+            next: 'Próximo',
+            next_approx: 'Próximo (aprox.)',
+            why: 'Por qué importa',
+            past: 'Hoy / sucedió hoy',
+            events: {
+                fomc: {
+                    name: 'FOMC',
+                    long: 'Reunión del Comité de la Reserva Federal (decisión de tasas)',
+                    when: '8 veces al año · 14:00 ET (anuncio)',
+                    why: 'La Fed decide tasas. BTC y todo el cripto suelen tener movimientos masivos en los minutos posteriores al anuncio. Muchas veces el mayor evento del mes.'
+                },
+                cpi: {
+                    name: 'CPI',
+                    long: 'Índice de precios al consumidor (inflación EE. UU.)',
+                    when: 'Mensual · ~10º–13º día del mes · 8:30 AM ET',
+                    why: 'Mide la inflación US. Si sale por encima de lo esperado → BTC suele caer 3–8%. Por debajo → sube igual de fuerte.'
+                },
+                nfp: {
+                    name: 'NFP',
+                    long: 'Nóminas no agrícolas (empleo EE. UU.)',
+                    when: 'Primer viernes del mes · 8:30 AM ET',
+                    why: 'Termómetro del empleo. Mucho movimiento en USD, oro, BTC y acciones en los primeros 30–60 min. Spreads y slippage altos.'
+                },
+                cme: {
+                    name: 'CME · Vencimiento de futuros',
+                    long: 'Cierre mensual de futuros BTC y ETH en CME',
+                    when: 'Último viernes hábil del mes · 16:00 ET',
+                    why: 'Reposicionamiento institucional. "Wicks" de manipulación los días previos. Los cierres trimestrales (Mar/Jun/Sep/Dec) son los más movidos.'
+                }
+            },
+            disclaimer: 'Las fechas FOMC son las oficiales de la Fed. CPI es aproximado (verifica el calendario del BLS para fechas exactas). Horas en hora del Este (ET).'
+        },
         nasdaq: { high_volatility: 'Alta volatilidad', calm_zone: 'Zona de calma' },
         tz_picker: {
             title: 'Seleccionar zona horaria',
@@ -70,7 +107,7 @@ const translations = {
     },
     en: {
         title: 'Market Session Times',
-        nav: { calculator: 'Calculator', journal: 'Journal', calculator_open: 'Open Calculator', journal_open: 'Open Journal' },
+        nav: { calculator: 'Calculator', journal: 'Journal', news: 'News', calculator_open: 'Open Calculator', journal_open: 'Open Journal', news_open: 'View macro events' },
         detecting: 'Detecting...',
         stocks: { title: 'US Stock Exchanges', subtitle: 'Stock Market' },
         forex: { title: 'Forex Session', subtitle: 'Currency Market' },
@@ -114,6 +151,43 @@ const translations = {
             windows_title: 'Best windows (NY time)',
             ny_time: 'NY time:',
             tip: 'Tip: crypto follows institutional flows — concentrate your trading in these hours.'
+        },
+        news: {
+            title: 'Macro events',
+            subtitle: 'Economic news that move crypto and the broader market',
+            impact_max: 'Maximum impact',
+            impact_high: 'High impact',
+            next: 'Next',
+            next_approx: 'Next (approx.)',
+            why: 'Why it matters',
+            past: 'Today / happened today',
+            events: {
+                fomc: {
+                    name: 'FOMC',
+                    long: 'Federal Open Market Committee meeting (rate decision)',
+                    when: '8 times a year · 2:00 PM ET (statement)',
+                    why: 'The Fed sets rates. BTC and all crypto usually move massively in the minutes after the announcement. Often the biggest event of the month.'
+                },
+                cpi: {
+                    name: 'CPI',
+                    long: 'Consumer Price Index (US inflation)',
+                    when: 'Monthly · ~10th–13th of month · 8:30 AM ET',
+                    why: 'Measures US inflation. If hotter than expected → BTC usually drops 3–8%. Cooler than expected → rallies just as hard.'
+                },
+                nfp: {
+                    name: 'NFP',
+                    long: 'Non-Farm Payrolls (US employment)',
+                    when: 'First Friday of month · 8:30 AM ET',
+                    why: 'Employment thermometer. Heavy movement in USD, gold, BTC, and equities in the first 30–60 min. Spreads and slippage spike.'
+                },
+                cme: {
+                    name: 'CME · Futures expiration',
+                    long: 'Monthly BTC & ETH futures close on CME',
+                    when: 'Last business Friday of month · 4:00 PM ET',
+                    why: 'Institutional repositioning. Manipulation "wicks" common in the days around it. Quarterly closes (Mar/Jun/Sep/Dec) are the biggest.'
+                }
+            },
+            disclaimer: 'FOMC dates are the Fed\'s official ones. CPI is approximate (verify the BLS calendar for exact dates). Times are Eastern Time (ET).'
         },
         nasdaq: { high_volatility: 'High volatility', calm_zone: 'Calm zone' },
         tz_picker: {
@@ -873,6 +947,9 @@ function renderMarkets(opts = {}) {
 
     // Card de Cripto (24/7 con medidor de liquidez)
     try { renderCryptoCard(now); } catch (e) { console.warn('crypto error', e); }
+
+    // Sección de Noticias / Eventos macro
+    try { renderNewsSection(now); } catch (e) { console.warn('news error', e); }
 }
 
 // ============================================================
@@ -1058,6 +1135,7 @@ function applyTimezoneChange() {
     try { updateClock(); } catch (e) {}
     try { renderMarkets({ force: true }); } catch (e) {}
     try { renderForexTimeline(Date.now()); } catch (e) {}
+    try { renderNewsSection(Date.now()); } catch (e) {}
     try { updateTimezoneLabel(); } catch (e) {}
 }
 
@@ -1591,6 +1669,176 @@ function renderCryptoCard(nowMs) {
         const nyTime = new Intl.DateTimeFormat(undefined, opts).format(new Date(nowMs));
         setText(card, 'crypto-ny-time', nyTime);
     } catch (e) { /* ignore */ }
+}
+
+// ============================================================
+// Eventos macro (Noticias) — fechas de NFP, FOMC, CPI, CME
+// ============================================================
+
+// Fechas oficiales del FOMC (publicadas por la Fed). Mantener actualizado.
+const FOMC_DATES = [
+    { y: 2025, m: 1,  d: 29 }, { y: 2025, m: 3,  d: 19 },
+    { y: 2025, m: 5,  d: 7  }, { y: 2025, m: 6,  d: 18 },
+    { y: 2025, m: 7,  d: 30 }, { y: 2025, m: 9,  d: 17 },
+    { y: 2025, m: 10, d: 29 }, { y: 2025, m: 12, d: 10 },
+    { y: 2026, m: 1,  d: 28 }, { y: 2026, m: 3,  d: 18 },
+    { y: 2026, m: 4,  d: 29 }, { y: 2026, m: 6,  d: 17 },
+    { y: 2026, m: 7,  d: 29 }, { y: 2026, m: 9,  d: 16 },
+    { y: 2026, m: 10, d: 28 }, { y: 2026, m: 12, d: 9  }
+];
+
+// Helper genérico: a partir de un weekday y posición, devuelve el día del mes
+// Reutiliza nthWeekdayOfMonth ya existente.
+
+// Construye un instante UTC desde una fecha+hora ET
+function instantInET(year, month, day, hour, minute) {
+    return TzUtils.zonedTimeToUtc({
+        year, month, day, hour, minute, second: 0
+    }, 'America/New_York');
+}
+
+// Próximo NFP: primer viernes del mes a las 8:30 AM ET
+function findNextNFP(nowMs) {
+    const now = new Date(nowMs);
+    const nyParts = TzUtils.getZonedParts(nowMs, 'America/New_York');
+    let y = nyParts.year, m = nyParts.month;
+    for (let i = 0; i < 13; i++) {
+        const day = nthWeekdayOfMonth(y, m, 5, 1); // 5 = viernes
+        const instant = instantInET(y, m, day, 8, 30);
+        if (instant.getTime() > nowMs) return { date: instant, exact: true };
+        m++; if (m > 12) { m = 1; y++; }
+    }
+    return null;
+}
+
+// Próximo FOMC: lookup en la tabla
+function findNextFOMC(nowMs) {
+    for (const f of FOMC_DATES) {
+        const instant = instantInET(f.y, f.m, f.d, 14, 0);
+        if (instant.getTime() > nowMs) return { date: instant, exact: true };
+    }
+    return null;
+}
+
+// Próximo CPI: 2º martes del mes a las 8:30 AM ET (aproximación)
+function findNextCPI(nowMs) {
+    const nyParts = TzUtils.getZonedParts(nowMs, 'America/New_York');
+    let y = nyParts.year, m = nyParts.month;
+    for (let i = 0; i < 13; i++) {
+        const day = nthWeekdayOfMonth(y, m, 2, 2); // 2 = martes, n=2 (segundo martes)
+        const instant = instantInET(y, m, day, 8, 30);
+        if (instant.getTime() > nowMs) return { date: instant, exact: false };
+        m++; if (m > 12) { m = 1; y++; }
+    }
+    return null;
+}
+
+// Próximo cierre mensual de futuros CME: último viernes del mes a las 16:00 ET
+function findNextCME(nowMs) {
+    const nyParts = TzUtils.getZonedParts(nowMs, 'America/New_York');
+    let y = nyParts.year, m = nyParts.month;
+    for (let i = 0; i < 13; i++) {
+        const day = nthWeekdayOfMonth(y, m, 5, -1); // último viernes
+        const instant = instantInET(y, m, day, 16, 0);
+        if (instant.getTime() > nowMs) return { date: instant, exact: true };
+        m++; if (m > 12) { m = 1; y++; }
+    }
+    return null;
+}
+
+// Formatea una fecha (instante UTC) en hora local del usuario
+function formatNewsDate(date) {
+    const tz = getEffectiveUserTimezone();
+    const optsDate = { day: 'numeric', month: 'short', year: 'numeric', timeZone: tz };
+    const optsTime = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz };
+    try {
+        const dateStr = new Intl.DateTimeFormat(undefined, optsDate).format(date);
+        const timeStr = new Intl.DateTimeFormat(undefined, optsTime).format(date);
+        return `${dateStr} · ${timeStr}`;
+    } catch (e) {
+        return date.toLocaleString();
+    }
+}
+
+// Tiempo entre ahora y un instante futuro
+function diffToFutureCountdown(nowMs, targetDate) {
+    const diffMs = targetDate.getTime() - nowMs;
+    if (diffMs <= 0) return null;
+    const totalMin = Math.round(diffMs / 60000);
+    return formatCountdown(totalMin);
+}
+
+const NEWS_EVENTS = [
+    { id: 'fomc', icon: 'fa-gavel',         impactKey: 'news.impact_max',  finder: findNextFOMC, exact: true,  badgeClass: 'impact-max' },
+    { id: 'cpi',  icon: 'fa-chart-line',    impactKey: 'news.impact_max',  finder: findNextCPI,  exact: false, badgeClass: 'impact-max' },
+    { id: 'nfp',  icon: 'fa-briefcase',     impactKey: 'news.impact_high', finder: findNextNFP,  exact: true,  badgeClass: 'impact-high' },
+    { id: 'cme',  icon: 'fa-calendar-check',impactKey: 'news.impact_high', finder: findNextCME,  exact: true,  badgeClass: 'impact-high' }
+];
+
+let __newsInitialRender = false;
+function renderNewsSection(nowMs) {
+    const grid = document.getElementById('news-grid');
+    if (!grid) return;
+
+    // Render inicial: estructura
+    if (!__newsInitialRender) {
+        grid.innerHTML = NEWS_EVENTS.map(ev => `
+            <div class="news-card ${ev.badgeClass}" data-news-id="${ev.id}">
+                <div class="news-card-header">
+                    <div class="news-title">
+                        <i class="fa-solid ${ev.icon}" aria-hidden="true"></i>
+                        <span data-i18n="news.events.${ev.id}.name">${escapeHtml(ev.id.toUpperCase())}</span>
+                    </div>
+                    <span class="news-impact" data-i18n="${ev.impactKey}"></span>
+                </div>
+                <div class="news-long" data-i18n="news.events.${ev.id}.long"></div>
+                <div class="news-when">
+                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                    <span data-i18n="news.events.${ev.id}.when"></span>
+                </div>
+                <div class="news-next-row">
+                    <span class="news-next-label" data-field="news-next-label-${ev.id}"></span>
+                    <span class="news-next-date tabular-nums" data-field="news-next-date-${ev.id}"></span>
+                </div>
+                <div class="news-countdown" data-field="news-countdown-${ev.id}"></div>
+                <div class="news-why">
+                    <strong data-i18n="news.why">Por qué importa</strong>
+                    <span data-i18n="news.events.${ev.id}.why"></span>
+                </div>
+            </div>
+        `).join('');
+
+        // Disclaimer al final
+        const disclaimer = document.createElement('div');
+        disclaimer.className = 'news-disclaimer';
+        disclaimer.setAttribute('data-i18n', 'news.disclaimer');
+        grid.appendChild(disclaimer);
+
+        translatePage(grid);
+        __newsInitialRender = true;
+    }
+
+    // Update dinámico: próxima fecha + countdown
+    NEWS_EVENTS.forEach(ev => {
+        const card = grid.querySelector(`[data-news-id="${ev.id}"]`);
+        if (!card) return;
+        const labelKey = ev.exact ? 'news.next' : 'news.next_approx';
+        setText(card, `news-next-label-${ev.id}`, t(labelKey));
+
+        const result = ev.finder(nowMs);
+        if (!result) {
+            setText(card, `news-next-date-${ev.id}`, '—');
+            setText(card, `news-countdown-${ev.id}`, '');
+            return;
+        }
+        setText(card, `news-next-date-${ev.id}`, formatNewsDate(result.date));
+        const cd = diffToFutureCountdown(nowMs, result.date);
+        setText(card, `news-countdown-${ev.id}`, cd ? `· ${t('countdown.opens_in', [cd]).replace(/^[^\s]+\s/, 'En ')} ` : '');
+        // Note: re-uso countdown.opens_in pero quito el verbo y dejo "En X" para el contexto.
+        // Para robustez, mejor escribir directamente:
+        const cdEl = card.querySelector(`[data-field="news-countdown-${ev.id}"]`);
+        if (cdEl) cdEl.textContent = cd ? `· ${cd}` : '';
+    });
 }
 
 // ============================================================

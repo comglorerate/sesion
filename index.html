@@ -47,6 +47,12 @@
                 <i class="fa-solid fa-book" aria-hidden="true"></i>
                 <span data-i18n="nav.journal">Journal</span>
             </a>
+            <a class="nav-button" href="#news-section"
+               data-i18n-title="nav.news_open"
+               data-i18n-aria-label="nav.news_open">
+                <i class="fa-solid fa-newspaper" aria-hidden="true"></i>
+                <span data-i18n="nav.news">Noticias</span>
+            </a>
         </nav>
 
         <div class="user-info">
@@ -127,6 +133,15 @@
                 <p>(<span data-i18n="forex.subtitle">Mercado de Divisas</span>)</p>
             </div>
             <div class="market-grid" id="forex-grid"></div>
+        </section>
+
+        <!-- 5) NOTICIAS / EVENTOS MACRO -->
+        <section id="news-section" aria-labelledby="news-heading">
+            <div class="section-header">
+                <h2 id="news-heading"><span data-i18n="news.title">Eventos macro</span></h2>
+                <p data-i18n="news.subtitle">Noticias económicas que mueven al cripto y al mercado en general</p>
+            </div>
+            <div class="news-grid" id="news-grid"></div>
         </section>
 
     </main>
