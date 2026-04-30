@@ -1571,8 +1571,7 @@ const CRYPTO_WINDOWS_REFERENCE = [
 function buildCryptoCardHTML() {
     return `
         <div class="card crypto-card" data-mkt-id="crypto" role="article" aria-label="Crypto market">
-            <div class="card-header">
-                <span class="market-name" data-i18n="crypto.name">Cripto (BTC, ETH…)</span>
+            <div class="card-header crypto-card-header-icon-only">
                 <i class="fa-brands fa-bitcoin market-icon" aria-hidden="true"></i>
             </div>
 

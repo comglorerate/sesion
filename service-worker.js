@@ -5,7 +5,7 @@
 //    (sirve de cache rápido y actualiza en background).
 //  - Cross-origin: passthrough (no cacheamos CDNs por simplicidad).
 
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v13';
 const CACHE_NAME = `sesion-horarios-${CACHE_VERSION}`;
 const ASSETS_TO_CACHE = [
   '.',

@@ -712,6 +712,13 @@ section { margin-bottom: var(--space-8); }
 /* --- Crypto card --- */
 .crypto-card .market-icon {
     color: #f7931a; /* Bitcoin orange */
+    font-size: 1.7rem;
+}
+
+/* Header sin texto: solo el logo a la derecha */
+.crypto-card-header-icon-only {
+    justify-content: flex-end;
+    margin-bottom: var(--space-3);
 }
 
 .crypto-card .status-badge.status-open {
