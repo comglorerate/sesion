@@ -1867,27 +1867,41 @@ function renderNewsSection(nowMs) {
         __newsInitialRender = true;
     }
 
-    // Update dinámico: próxima fecha + countdown
-    NEWS_EVENTS.forEach(ev => {
-        const card = grid.querySelector(`[data-news-id="${ev.id}"]`);
-        if (!card) return;
-        const labelKey = ev.exact ? 'news.next' : 'news.next_approx';
-        setText(card, `news-next-label-${ev.id}`, t(labelKey));
+    // Update dinámico: próxima fecha + countdown + ordenar por proximidad
+    // 1) Calcular fechas de cada evento
+    const computed = NEWS_EVENTS.map(ev => ({ ev, next: ev.finder(nowMs) }));
 
-        const result = ev.finder(nowMs);
-        if (!result) {
-            setText(card, `news-next-date-${ev.id}`, '—');
-            setText(card, `news-countdown-${ev.id}`, '');
+    // 2) Ordenar por fecha más próxima (sin fecha = al final)
+    const sorted = computed.slice().sort((a, b) => {
+        if (!a.next && !b.next) return 0;
+        if (!a.next) return 1;
+        if (!b.next) return -1;
+        return a.next.date.getTime() - b.next.date.getTime();
+    });
+
+    // 3) Aplicar order CSS a cada card según su posición ordenada (sin mover DOM)
+    sorted.forEach((entry, idx) => {
+        const card = grid.querySelector(`[data-news-id="${entry.ev.id}"]`);
+        if (!card) return;
+        card.style.order = idx;
+
+        const labelKey = entry.ev.exact ? 'news.next' : 'news.next_approx';
+        setText(card, `news-next-label-${entry.ev.id}`, t(labelKey));
+
+        if (!entry.next) {
+            setText(card, `news-next-date-${entry.ev.id}`, '—');
+            setText(card, `news-countdown-${entry.ev.id}`, '');
             return;
         }
-        setText(card, `news-next-date-${ev.id}`, formatNewsDate(result.date));
-        const cd = diffToFutureCountdown(nowMs, result.date);
-        setText(card, `news-countdown-${ev.id}`, cd ? `· ${t('countdown.opens_in', [cd]).replace(/^[^\s]+\s/, 'En ')} ` : '');
-        // Note: re-uso countdown.opens_in pero quito el verbo y dejo "En X" para el contexto.
-        // Para robustez, mejor escribir directamente:
-        const cdEl = card.querySelector(`[data-field="news-countdown-${ev.id}"]`);
+        setText(card, `news-next-date-${entry.ev.id}`, formatNewsDate(entry.next.date));
+        const cd = diffToFutureCountdown(nowMs, entry.next.date);
+        const cdEl = card.querySelector(`[data-field="news-countdown-${entry.ev.id}"]`);
         if (cdEl) cdEl.textContent = cd ? `· ${cd}` : '';
     });
+
+    // El disclaimer se mantiene siempre al final con un order alto
+    const disclaimerEl = grid.querySelector('.news-disclaimer');
+    if (disclaimerEl) disclaimerEl.style.order = 999;
 }
 
 // ============================================================
