@@ -58,7 +58,7 @@ const translations = {
             impact_high: 'Impacto alto',
             next: 'Próximo',
             next_approx: 'Próximo (aprox.)',
-            why: 'Por qué importa',
+            why: 'Impacto en el mercado',
             past: 'Hoy / sucedió hoy',
             events: {
                 fomc: {
@@ -222,7 +222,7 @@ const translations = {
             impact_high: 'High impact',
             next: 'Next',
             next_approx: 'Next (approx.)',
-            why: 'Why it matters',
+            why: 'Market impact',
             past: 'Today / happened today',
             events: {
                 fomc: {
@@ -1977,7 +1977,7 @@ function renderNewsSection(nowMs) {
                 </div>
                 <div class="news-countdown" data-field="news-countdown-${ev.id}"></div>
                 <div class="news-why">
-                    <strong data-i18n="news.why">Por qué importa</strong>
+                    <strong data-i18n="news.why">Impacto en el mercado</strong>
                     <span data-i18n="news.events.${ev.id}.why"></span>
                 </div>
             </div>
