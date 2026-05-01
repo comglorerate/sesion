@@ -513,6 +513,24 @@ section { margin-bottom: var(--space-8); }
 .time-label { color: var(--text-muted); }
 .time-value { font-weight: 650; color: var(--text); font-variant-numeric: tabular-nums; }
 
+/* Fila de almuerzo / lunch lull (solo Forex). Color violeta sutil — el mismo
+   tono que la ventana "calma" del progress bar para mantener coherencia. */
+.time-row-lunch .time-label-lunch {
+    color: var(--accent-purple);
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.time-row-lunch .time-label-lunch::before {
+    content: '🍽';
+    font-size: 0.85rem;
+}
+.time-row-lunch .time-value-lunch {
+    color: #c4b5fd;
+    font-weight: 700;
+}
+
 .sub-time {
     font-size: 0.85rem;
     color: var(--text-muted);

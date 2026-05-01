@@ -9,7 +9,7 @@ const translations = {
         nav: { calculator: 'Calculadora', journal: 'Journal', news: 'Noticias', calculator_open: 'Abrir Calculadora', journal_open: 'Abrir Journal', news_open: 'Ver eventos macro' },
         detecting: 'Detectando...',
         stocks: { title: 'Bolsa de Valores de EE. UU', subtitle: 'Mercado de Acciones' },
-        forex: { title: 'Sesión de Forex', subtitle: 'Mercado de Divisas' },
+        forex: { title: 'Sesión de Forex', subtitle: 'Mercado de Divisas', lunch: 'Almuerzo (volumen bajo)', lunch_label: 'Almuerzo:' },
         status: {
             closed: 'Cerrado',
             closed_holiday: 'Cerrado (Feriado: {0})',
@@ -110,7 +110,7 @@ const translations = {
         nav: { calculator: 'Calculator', journal: 'Journal', news: 'News', calculator_open: 'Open Calculator', journal_open: 'Open Journal', news_open: 'View macro events' },
         detecting: 'Detecting...',
         stocks: { title: 'US Stock Exchanges', subtitle: 'Stock Market' },
-        forex: { title: 'Forex Session', subtitle: 'Currency Market' },
+        forex: { title: 'Forex Session', subtitle: 'Currency Market', lunch: 'Lunch lull (low volume)', lunch_label: 'Lunch:' },
         status: {
             closed: 'Closed',
             closed_holiday: 'Closed (Holiday: {0})',
@@ -277,11 +277,19 @@ function escapeHtml(str) {
 // Datos de mercados
 // ============================================================
 // `openDays` usa formato Date.getDay() (0=Dom,1=Lun,...6=Sáb)
+// `lunch` = receso/lunch lull aproximado: hora local del mercado en que los traders
+// institucionales suelen ir a comer y el volumen baja notablemente. No siempre es un
+// cierre oficial (excepto Tokyo Stock Exchange que sí cierra; aquí la sesión Forex
+// continúa pero el volumen cae).
 const forexMarkets = [
-    { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney', open: 7, close: 16, icon: 'fa-earth-oceania', openDays: [0, 1, 2, 3, 4, 5] },
-    { id: 'tokyo',  name: 'Tokyo',  tz: 'Asia/Tokyo',       open: 9, close: 18, icon: 'fa-yen-sign',     openDays: [0, 1, 2, 3, 4, 5] },
-    { id: 'london', name: 'London', tz: 'Europe/London',    open: 8, close: 17, icon: 'fa-sterling-sign', openDays: [1, 2, 3, 4, 5] },
-    { id: 'ny',     name: 'New York', tz: 'America/New_York', open: 8, close: 17, icon: 'fa-dollar-sign',  openDays: [1, 2, 3, 4, 5] }
+    { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney',  open: 7, close: 16, icon: 'fa-earth-oceania',  openDays: [0, 1, 2, 3, 4, 5],
+      windows: [{ kind: 'calm', startH: 12, startM: 0, endH: 13, endM: 0, labelKey: 'forex.lunch' }] },
+    { id: 'tokyo',  name: 'Tokyo',  tz: 'Asia/Tokyo',        open: 9, close: 18, icon: 'fa-yen-sign',       openDays: [0, 1, 2, 3, 4, 5],
+      windows: [{ kind: 'calm', startH: 11, startM: 30, endH: 12, endM: 30, labelKey: 'forex.lunch' }] },
+    { id: 'london', name: 'London', tz: 'Europe/London',     open: 8, close: 17, icon: 'fa-sterling-sign',  openDays: [1, 2, 3, 4, 5],
+      windows: [{ kind: 'calm', startH: 12, startM: 0, endH: 13, endM: 0, labelKey: 'forex.lunch' }] },
+    { id: 'ny',     name: 'New York', tz: 'America/New_York', open: 8, close: 17, icon: 'fa-dollar-sign',   openDays: [1, 2, 3, 4, 5],
+      windows: [{ kind: 'calm', startH: 12, startM: 0, endH: 13, endM: 0, labelKey: 'forex.lunch' }] }
 ];
 
 const stockMarkets = [
@@ -794,6 +802,10 @@ function buildCardHTML(mkt) {
                 <span class="time-label" data-field="close-label" data-i18n="close_label">${escapeHtml(t('close_label'))}</span>
                 <span class="time-value" data-field="close-time">--:--</span>
             </div>
+            <div class="time-row time-row-lunch hidden" data-field="lunch-row">
+                <span class="time-label time-label-lunch" data-i18n="forex.lunch_label">Almuerzo:</span>
+                <span class="time-value time-value-lunch" data-field="lunch-time">--:-- – --:--</span>
+            </div>
             <div class="sub-time"><span data-i18n="market_time">${escapeHtml(t('market_time'))}</span> <span data-field="mkt-time">--:--</span></div>
 
             <div class="early-close-note hidden" data-field="early-close-note">
@@ -844,6 +856,23 @@ function updateCard(card, mkt, data) {
     const localClose = getFormattedUserTimeFromMarketTime(closeH, closeM, mkt.tz);
     setText(card, 'open-time', localOpen);
     setText(card, 'close-time', localClose);
+
+    // Almuerzo / lunch lull (cualquier mercado con una ventana 'calm' configurada:
+    // Forex (Sydney/Tokyo/London/NY) y stocks (NASDAQ).
+    // Durante este periodo el volumen baja porque los traders institucionales van
+    // a comer; el mercado sigue abierto pero los movimientos son menos confiables.
+    const lunchRow = card.querySelector('[data-field="lunch-row"]');
+    if (lunchRow) {
+        const lunchWindow = Array.isArray(mkt.windows) ? mkt.windows.find(w => w.kind === 'calm') : null;
+        if (lunchWindow) {
+            const lunchStart = getFormattedUserTimeFromMarketTime(lunchWindow.startH, lunchWindow.startM || 0, mkt.tz);
+            const lunchEnd = getFormattedUserTimeFromMarketTime(lunchWindow.endH, lunchWindow.endM || 0, mkt.tz);
+            setText(card, 'lunch-time', `${lunchStart} – ${lunchEnd}`);
+            lunchRow.classList.remove('hidden');
+        } else {
+            lunchRow.classList.add('hidden');
+        }
+    }
 
     // Hora del mercado actual (formato 12h con a.m./p.m. consistente con el resto)
     let mktTimeStr = '';
