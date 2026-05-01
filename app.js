@@ -89,6 +89,69 @@ const translations = {
             disclaimer: 'Las fechas FOMC son las oficiales de la Fed. CPI es aproximado (verifica el calendario del BLS para fechas exactas). Horas en hora del Este (ET).'
         },
         nasdaq: { high_volatility: 'Alta volatilidad', calm_zone: 'Zona de calma' },
+        notifs: {
+            button: 'Notificaciones',
+            open: 'Abrir notificaciones',
+            close: 'Cerrar',
+            title: 'Notificaciones',
+            master: 'Activar notificaciones del navegador',
+            permission_default: 'Permiso aún no concedido. Activa el toggle para pedirlo.',
+            permission_granted: '✓ Permiso concedido — listo para avisarte.',
+            permission_denied: '✗ Permiso denegado. Permítelo desde la barra de direcciones del navegador.',
+            permission_unsupported: 'Tu navegador no soporta notificaciones.',
+            macro_title: 'Eventos macro',
+            macro_hint: 'Te avisa 5 minutos antes',
+            opens_title: 'Aperturas de mercado',
+            opens_hint: 'Te avisa al momento de la apertura',
+            custom_title: 'Alarmas personalizadas',
+            custom_hint: 'Crea tus propias alarmas (ej. "13:00 — Reanudación de sesión")',
+            add: 'Añadir',
+            empty: 'No hay alarmas personalizadas aún.',
+            disclaimer: 'Las notificaciones requieren tener la pestaña abierta. Si cierras el navegador, vuelve a abrirla y se reprograman automáticamente.',
+            preset: {
+                fomc: 'FOMC (decisión de la Fed)',
+                nfp: 'NFP (empleo US)',
+                cpi: 'CPI (inflación US)',
+                cme: 'CME (vencimiento futuros)',
+                openNasdaq: 'NASDAQ abre',
+                openNY: 'New York (Forex) abre',
+                openLondon: 'London abre',
+                openTokyo: 'Tokyo abre',
+                openSydney: 'Sydney abre',
+                goldenHour: 'Inicio Golden Hour (cripto)'
+            },
+            preset_msg: {
+                fomc: 'FOMC en 5 min · Decisión de tasas — máxima volatilidad',
+                nfp: 'NFP en 5 min · Datos de empleo US — alta volatilidad',
+                cpi: 'CPI en 5 min · Inflación US — atento al BTC',
+                cme: 'CME en 5 min · Vencimiento de futuros',
+                openNasdaq: 'NASDAQ acaba de abrir',
+                openNY: 'New York Forex acaba de abrir',
+                openLondon: 'London acaba de abrir — alta liquidez',
+                openTokyo: 'Tokyo acaba de abrir',
+                openSydney: 'Sydney acaba de abrir',
+                goldenHour: 'Golden Hour comienza ahora · London + NY → máxima liquidez cripto'
+            },
+            form: {
+                title_add: 'Nueva alarma',
+                title_edit: 'Editar alarma',
+                time: 'Hora',
+                message: 'Mensaje',
+                message_placeholder: 'Ej: Reanudación de sesión',
+                days: 'Días de la semana',
+                cancel: 'Cancelar',
+                save: 'Guardar',
+                save_edit: 'Actualizar'
+            },
+            day_short: { 0: 'D', 1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V', 6: 'S' },
+            edit: 'Editar',
+            delete: 'Eliminar',
+            toggle_on: 'Desactivar',
+            toggle_off: 'Activar',
+            every_day: 'Todos los días',
+            weekdays: 'L–V',
+            once: 'Una vez'
+        },
         tz_picker: {
             title: 'Seleccionar zona horaria',
             search_placeholder: 'Buscar ciudad o zona...',
@@ -190,6 +253,69 @@ const translations = {
             disclaimer: 'FOMC dates are the Fed\'s official ones. CPI is approximate (verify the BLS calendar for exact dates). Times are Eastern Time (ET).'
         },
         nasdaq: { high_volatility: 'High volatility', calm_zone: 'Calm zone' },
+        notifs: {
+            button: 'Notifications',
+            open: 'Open notifications',
+            close: 'Close',
+            title: 'Notifications',
+            master: 'Enable browser notifications',
+            permission_default: 'Permission not granted yet. Toggle to request it.',
+            permission_granted: '✓ Permission granted — ready to alert you.',
+            permission_denied: '✗ Permission denied. Allow from your browser address bar.',
+            permission_unsupported: 'Your browser does not support notifications.',
+            macro_title: 'Macro events',
+            macro_hint: 'Alerts 5 minutes before',
+            opens_title: 'Market opens',
+            opens_hint: 'Alerts at market open',
+            custom_title: 'Custom alarms',
+            custom_hint: 'Create your own alarms (e.g. "1:00 PM — Session resume")',
+            add: 'Add',
+            empty: 'No custom alarms yet.',
+            disclaimer: 'Notifications require the tab to be open. If you close the browser, reopen the page and they will reschedule automatically.',
+            preset: {
+                fomc: 'FOMC (Fed rate decision)',
+                nfp: 'NFP (US jobs)',
+                cpi: 'CPI (US inflation)',
+                cme: 'CME (futures expiry)',
+                openNasdaq: 'NASDAQ opens',
+                openNY: 'New York (Forex) opens',
+                openLondon: 'London opens',
+                openTokyo: 'Tokyo opens',
+                openSydney: 'Sydney opens',
+                goldenHour: 'Golden Hour start (crypto)'
+            },
+            preset_msg: {
+                fomc: 'FOMC in 5 min · Rate decision — max volatility',
+                nfp: 'NFP in 5 min · US jobs data — high volatility',
+                cpi: 'CPI in 5 min · US inflation — watch BTC',
+                cme: 'CME in 5 min · Futures expiry',
+                openNasdaq: 'NASDAQ just opened',
+                openNY: 'New York Forex just opened',
+                openLondon: 'London just opened — high liquidity',
+                openTokyo: 'Tokyo just opened',
+                openSydney: 'Sydney just opened',
+                goldenHour: 'Golden Hour starts now · London + NY = max crypto liquidity'
+            },
+            form: {
+                title_add: 'New alarm',
+                title_edit: 'Edit alarm',
+                time: 'Time',
+                message: 'Message',
+                message_placeholder: 'e.g. Session resume',
+                days: 'Days of week',
+                cancel: 'Cancel',
+                save: 'Save',
+                save_edit: 'Update'
+            },
+            day_short: { 0: 'S', 1: 'M', 2: 'T', 3: 'W', 4: 'T', 5: 'F', 6: 'S' },
+            edit: 'Edit',
+            delete: 'Delete',
+            toggle_on: 'Disable',
+            toggle_off: 'Enable',
+            every_day: 'Every day',
+            weekdays: 'M–F',
+            once: 'Once'
+        },
         tz_picker: {
             title: 'Select timezone',
             search_placeholder: 'Search city or zone...',
@@ -1905,11 +2031,445 @@ function renderNewsSection(nowMs) {
 }
 
 // ============================================================
+// Sistema de notificaciones (presets + alarmas custom)
+// ============================================================
+const DEFAULT_NOTIF_STATE = {
+    enabled: false,
+    presets: {
+        fomc: false, nfp: false, cpi: false, cme: false,
+        openNasdaq: false, openNY: false, openLondon: false,
+        openTokyo: false, openSydney: false, goldenHour: false
+    },
+    custom: [] // [{ id, time: 'HH:MM', message, days: [0..6], enabled: true }]
+};
+
+let notificationState = JSON.parse(JSON.stringify(DEFAULT_NOTIF_STATE));
+let __notifTimers = [];
+let __editingAlarmId = null; // null = modo "añadir"; id existente = modo "editar"
+const NOTIF_STORAGE_KEY = 'notif_settings_v1';
+
+function loadNotificationState() {
+    try {
+        const raw = localStorage.getItem(NOTIF_STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            notificationState = {
+                enabled: !!parsed.enabled,
+                presets: { ...DEFAULT_NOTIF_STATE.presets, ...(parsed.presets || {}) },
+                custom: Array.isArray(parsed.custom) ? parsed.custom : []
+            };
+        }
+    } catch (e) { /* ignore */ }
+}
+
+function saveNotificationState() {
+    try { localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notificationState)); }
+    catch (e) { /* ignore */ }
+}
+
+function notifSupported() {
+    return typeof window !== 'undefined' && 'Notification' in window;
+}
+
+async function ensureNotificationPermission() {
+    if (!notifSupported()) return 'unsupported';
+    if (Notification.permission === 'granted') return 'granted';
+    if (Notification.permission === 'denied') return 'denied';
+    try {
+        const result = await Notification.requestPermission();
+        return result;
+    } catch (e) { return 'denied'; }
+}
+
+function showNotification(title, body) {
+    if (!notifSupported() || Notification.permission !== 'granted') return;
+    try {
+        const n = new Notification(title, {
+            body: body || '',
+            icon: 'icons/icon-192.svg',
+            badge: 'icons/icon-192.svg',
+            tag: 'sesion-horarios-' + Date.now(),
+            silent: false
+        });
+
+        // Click sobre la notificación → enfoca la pestaña/ventana de la app y cierra el aviso.
+        // Si la pestaña está minimizada o en otra ventana, la trae al frente.
+        n.onclick = () => {
+            try {
+                if (typeof window.focus === 'function') window.focus();
+                if (typeof window.parent === 'object' && window.parent && window.parent.focus) window.parent.focus();
+            } catch (e) { /* ignore */ }
+            try { n.close(); } catch (e) { /* ignore */ }
+        };
+
+        // Auto-cerrar después de 8s para no llenar el centro de notificaciones
+        setTimeout(() => { try { n.close(); } catch (e) {} }, 8000);
+    } catch (e) { console.warn('Notification error:', e); }
+}
+
+// Próxima fecha (instante UTC) de un preset
+function findNextPresetEvent(presetId, nowMs) {
+    const FIVE_MIN = 5 * 60 * 1000;
+    switch (presetId) {
+        case 'fomc': {
+            const r = findNextFOMC(nowMs);
+            return r ? { fireAt: r.date.getTime() - FIVE_MIN, title: 'FOMC', body: t('notifs.preset_msg.fomc') } : null;
+        }
+        case 'nfp': {
+            const r = findNextNFP(nowMs);
+            return r ? { fireAt: r.date.getTime() - FIVE_MIN, title: 'NFP', body: t('notifs.preset_msg.nfp') } : null;
+        }
+        case 'cpi': {
+            const r = findNextCPI(nowMs);
+            return r ? { fireAt: r.date.getTime() - FIVE_MIN, title: 'CPI', body: t('notifs.preset_msg.cpi') } : null;
+        }
+        case 'cme': {
+            const r = findNextCME(nowMs);
+            return r ? { fireAt: r.date.getTime() - FIVE_MIN, title: 'CME', body: t('notifs.preset_msg.cme') } : null;
+        }
+        case 'goldenHour': {
+            const r = findNextCryptoHighWindow(nowMs);
+            if (!r || r.type !== 'opens') return null;
+            const fireAt = nowMs + r.minutes * 60 * 1000;
+            return { fireAt, title: 'Golden Hour', body: t('notifs.preset_msg.goldenHour') };
+        }
+        case 'openNasdaq': return findNextMarketOpenForPreset('nasdaq', nowMs, 'openNasdaq');
+        case 'openNY':     return findNextMarketOpenForPreset('ny',     nowMs, 'openNY');
+        case 'openLondon': return findNextMarketOpenForPreset('london', nowMs, 'openLondon');
+        case 'openTokyo':  return findNextMarketOpenForPreset('tokyo',  nowMs, 'openTokyo');
+        case 'openSydney': return findNextMarketOpenForPreset('sydney', nowMs, 'openSydney');
+    }
+    return null;
+}
+
+function findNextMarketOpenForPreset(mktId, nowMs, presetKey) {
+    const all = stockMarkets.concat(forexMarkets);
+    const mkt = all.find(m => m.id === mktId);
+    if (!mkt) return null;
+    const ev = findNextMarketEvent(mkt, nowMs);
+    if (!ev || ev.type !== 'opens') return null;
+    const fireAt = nowMs + ev.minutes * 60 * 1000;
+    return { fireAt, title: mkt.name, body: t('notifs.preset_msg.' + presetKey) };
+}
+
+// Próxima ocurrencia de una alarma personalizada (en hora local del navegador)
+function nextCustomAlarmTime(alarm, fromMs) {
+    if (!alarm || !alarm.time) return null;
+    const [hh, mm] = alarm.time.split(':').map(Number);
+    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+    const days = Array.isArray(alarm.days) && alarm.days.length > 0 ? alarm.days : [0, 1, 2, 3, 4, 5, 6];
+
+    const from = new Date(fromMs);
+    for (let offset = 0; offset < 8; offset++) {
+        const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + offset, hh, mm, 0, 0);
+        if (!days.includes(d.getDay())) continue;
+        if (d.getTime() > fromMs) return d.getTime();
+    }
+    return null;
+}
+
+function clearAllNotifTimers() {
+    __notifTimers.forEach(id => clearTimeout(id));
+    __notifTimers = [];
+}
+
+function scheduleOneNotif(delay, title, body, onFireExtra) {
+    // Cap a ~24 días (límite de setTimeout int32)
+    if (delay < 0 || delay > 2147483647) return;
+    const id = setTimeout(() => {
+        showNotification(title, body);
+        if (onFireExtra) try { onFireExtra(); } catch (e) {}
+        // Reagendar el ciclo completo para captar próximas ocurrencias
+        rescheduleAllNotifications();
+    }, delay);
+    __notifTimers.push(id);
+}
+
+function rescheduleAllNotifications() {
+    clearAllNotifTimers();
+    if (!notificationState.enabled || !notifSupported() || Notification.permission !== 'granted') {
+        updateNotifTriggerVisual();
+        return;
+    }
+
+    const now = Date.now();
+
+    // Presets
+    Object.keys(notificationState.presets).forEach(presetId => {
+        if (!notificationState.presets[presetId]) return;
+        const evt = findNextPresetEvent(presetId, now);
+        if (!evt) return;
+        const delay = evt.fireAt - now;
+        if (delay > 0) scheduleOneNotif(delay, evt.title, evt.body);
+    });
+
+    // Custom alarms
+    notificationState.custom.forEach(alarm => {
+        if (!alarm.enabled) return;
+        const next = nextCustomAlarmTime(alarm, now);
+        if (!next) return;
+        const delay = next - now;
+        if (delay > 0) scheduleOneNotif(delay, alarm.message || '⏰ Alarma', '');
+    });
+
+    updateNotifTriggerVisual();
+}
+
+function updateNotifTriggerVisual() {
+    const trigger = document.getElementById('notif-trigger');
+    if (!trigger) return;
+    const anyActive = notificationState.enabled && (
+        Object.values(notificationState.presets).some(Boolean) ||
+        notificationState.custom.some(a => a.enabled)
+    );
+    trigger.classList.toggle('is-active', !!anyActive);
+}
+
+// ============================================================
+// UI del modal de notificaciones
+// ============================================================
+function setupNotificationsUI() {
+    const trigger = document.getElementById('notif-trigger');
+    const modal = document.getElementById('notif-modal');
+    const closeBtn = document.getElementById('notif-modal-close');
+    const masterToggle = document.getElementById('notif-master-toggle');
+    const permStatus = document.getElementById('notif-permission-status');
+    const addBtn = document.getElementById('notif-add-alarm');
+    const addForm = document.getElementById('notif-add-form');
+    const cancelAdd = document.getElementById('notif-cancel-add');
+    const confirmAdd = document.getElementById('notif-confirm-add');
+    const customList = document.getElementById('notif-custom-list');
+    if (!trigger || !modal) return;
+
+    const open = () => {
+        modal.classList.remove('hidden');
+        refreshNotifModal();
+    };
+    const close = () => modal.classList.add('hidden');
+
+    trigger.addEventListener('click', open);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) close();
+    });
+
+    // Master toggle
+    if (masterToggle) {
+        masterToggle.addEventListener('change', async () => {
+            if (masterToggle.checked) {
+                if (!notifSupported()) {
+                    masterToggle.checked = false;
+                    setPermissionStatus('unsupported');
+                    return;
+                }
+                const res = await ensureNotificationPermission();
+                setPermissionStatus(res);
+                if (res !== 'granted') {
+                    masterToggle.checked = false;
+                    notificationState.enabled = false;
+                } else {
+                    notificationState.enabled = true;
+                }
+            } else {
+                notificationState.enabled = false;
+            }
+            saveNotificationState();
+            rescheduleAllNotifications();
+        });
+    }
+
+    // Preset checkboxes
+    modal.querySelectorAll('input[type="checkbox"][data-preset]').forEach(cb => {
+        cb.addEventListener('change', () => {
+            const id = cb.getAttribute('data-preset');
+            notificationState.presets[id] = cb.checked;
+            saveNotificationState();
+            rescheduleAllNotifications();
+        });
+    });
+
+    // Helper para abrir el form en modo "añadir" o "editar"
+    const openAlarmForm = (alarm) => {
+        const titleEl = document.getElementById('notif-form-title');
+        const timeInput = document.getElementById('notif-new-time');
+        const msgInput = document.getElementById('notif-new-message');
+        const dayCbs = addForm.querySelectorAll('.notif-day input');
+
+        if (alarm) {
+            __editingAlarmId = alarm.id;
+            if (titleEl) titleEl.textContent = t('notifs.form.title_edit');
+            if (confirmAdd) confirmAdd.textContent = t('notifs.form.save_edit');
+            timeInput.value = alarm.time || '13:00';
+            msgInput.value = alarm.message || '';
+            dayCbs.forEach(cb => { cb.checked = (alarm.days || []).includes(Number(cb.value)); });
+        } else {
+            __editingAlarmId = null;
+            if (titleEl) titleEl.textContent = t('notifs.form.title_add');
+            if (confirmAdd) confirmAdd.textContent = t('notifs.form.save');
+            timeInput.value = '13:00';
+            msgInput.value = '';
+            // Por defecto L-V
+            dayCbs.forEach(cb => { cb.checked = ['1','2','3','4','5'].includes(cb.value); });
+        }
+        addForm.classList.remove('hidden');
+        setTimeout(() => msgInput && msgInput.focus(), 50);
+    };
+
+    // Botón "+ Añadir"
+    if (addBtn) addBtn.addEventListener('click', () => openAlarmForm(null));
+
+    // Botón "Cancelar" del form
+    if (cancelAdd) cancelAdd.addEventListener('click', () => {
+        addForm.classList.add('hidden');
+        __editingAlarmId = null;
+    });
+
+    // Botón "Guardar / Actualizar" del form
+    if (confirmAdd) confirmAdd.addEventListener('click', () => {
+        const time = document.getElementById('notif-new-time').value;
+        const message = document.getElementById('notif-new-message').value.trim() || '⏰ Alarma';
+        const days = Array.from(addForm.querySelectorAll('.notif-day input:checked')).map(c => Number(c.value));
+        if (!time) return;
+
+        if (__editingAlarmId) {
+            // Modo editar: actualiza alarma existente preservando id y enabled
+            const existing = notificationState.custom.find(a => a.id === __editingAlarmId);
+            if (existing) {
+                existing.time = time;
+                existing.message = message;
+                existing.days = days.length ? days : [0, 1, 2, 3, 4, 5, 6];
+            }
+        } else {
+            // Modo añadir
+            const newAlarm = {
+                id: 'a_' + Date.now() + '_' + Math.floor(Math.random() * 999),
+                time, message,
+                days: days.length ? days : [0, 1, 2, 3, 4, 5, 6],
+                enabled: true
+            };
+            notificationState.custom.push(newAlarm);
+        }
+
+        saveNotificationState();
+        rescheduleAllNotifications();
+        addForm.classList.add('hidden');
+        __editingAlarmId = null;
+        renderCustomAlarms();
+    });
+
+    // Delegación: toggle / editar / eliminar alarmas custom
+    if (customList) {
+        customList.addEventListener('click', (e) => {
+            const item = e.target.closest('.notif-custom-item');
+            if (!item) return;
+            const id = item.dataset.alarmId;
+            const alarm = notificationState.custom.find(a => a.id === id);
+            if (!alarm) return;
+            if (e.target.closest('.notif-toggle')) {
+                alarm.enabled = !alarm.enabled;
+                saveNotificationState();
+                rescheduleAllNotifications();
+                renderCustomAlarms();
+            } else if (e.target.closest('.notif-edit')) {
+                openAlarmForm(alarm);
+            } else if (e.target.closest('.notif-delete')) {
+                notificationState.custom = notificationState.custom.filter(a => a.id !== id);
+                saveNotificationState();
+                rescheduleAllNotifications();
+                renderCustomAlarms();
+            }
+        });
+    }
+
+    // Re-render al volver a la pestaña (reagenda timers que pudieron perderse)
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) rescheduleAllNotifications();
+    });
+}
+
+function setPermissionStatus(status) {
+    const el = document.getElementById('notif-permission-status');
+    if (!el) return;
+    el.classList.remove('is-error', 'is-ok');
+    let key = 'notifs.permission_default';
+    if (status === 'granted') { key = 'notifs.permission_granted'; el.classList.add('is-ok'); }
+    else if (status === 'denied') { key = 'notifs.permission_denied'; el.classList.add('is-error'); }
+    else if (status === 'unsupported') { key = 'notifs.permission_unsupported'; el.classList.add('is-error'); }
+    el.textContent = t(key);
+}
+
+function refreshNotifModal() {
+    // Master toggle estado
+    const masterToggle = document.getElementById('notif-master-toggle');
+    if (masterToggle) masterToggle.checked = notificationState.enabled && Notification.permission === 'granted';
+
+    // Permission status
+    const status = !notifSupported() ? 'unsupported' : Notification.permission;
+    setPermissionStatus(status);
+
+    // Presets
+    document.querySelectorAll('#notif-modal input[type="checkbox"][data-preset]').forEach(cb => {
+        const id = cb.getAttribute('data-preset');
+        cb.checked = !!notificationState.presets[id];
+    });
+
+    // Custom alarms
+    renderCustomAlarms();
+}
+
+function renderCustomAlarms() {
+    const list = document.getElementById('notif-custom-list');
+    if (!list) return;
+    if (!notificationState.custom.length) {
+        list.innerHTML = `<div class="notif-empty-list">${escapeHtml(t('notifs.empty'))}</div>`;
+        return;
+    }
+    const dayShort = translations[currentLang]?.notifs?.day_short || translations.es.notifs.day_short;
+    const editLabel = t('notifs.edit');
+    const deleteLabel = t('notifs.delete');
+    list.innerHTML = notificationState.custom.map(a => {
+        const dayLabel = formatDaysSummary(a.days, dayShort);
+        const toggleLabel = a.enabled ? t('notifs.toggle_on') : t('notifs.toggle_off');
+        return `
+            <div class="notif-custom-item ${a.enabled ? '' : 'is-disabled'}" data-alarm-id="${escapeHtml(a.id)}">
+                <span class="notif-custom-time">${escapeHtml(a.time)}</span>
+                <span class="notif-custom-message">${escapeHtml(a.message || '')}</span>
+                <span class="notif-custom-days">${escapeHtml(dayLabel)}</span>
+                <div class="notif-custom-actions">
+                    <button type="button" class="notif-toggle" aria-label="${escapeHtml(toggleLabel)}" title="${escapeHtml(toggleLabel)}">
+                        <i class="fa-solid ${a.enabled ? 'fa-toggle-on' : 'fa-toggle-off'}"></i>
+                    </button>
+                    <button type="button" class="notif-edit" aria-label="${escapeHtml(editLabel)}" title="${escapeHtml(editLabel)}">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="notif-delete" aria-label="${escapeHtml(deleteLabel)}" title="${escapeHtml(deleteLabel)}">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function formatDaysSummary(days, dayShort) {
+    if (!Array.isArray(days) || days.length === 0 || days.length === 7) return t('notifs.every_day');
+    // Verifica si es L-V (lunes a viernes)
+    const sortedSet = [...days].sort();
+    if (sortedSet.length === 5 && sortedSet.join(',') === '1,2,3,4,5') return t('notifs.weekdays');
+    return sortedSet.map(d => dayShort[d]).join(' ');
+}
+
+// ============================================================
 // Init
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
     loadUserTimezoneOverride();
     setupTimezonePicker();
+
+    loadNotificationState();
+    setupNotificationsUI();
+    rescheduleAllNotifications();
 
     const initial = detectLanguage();
     setLanguage(initial); // esto invoca el primer render

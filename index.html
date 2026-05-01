@@ -61,6 +61,11 @@
                 <span id="user-timezone-text" data-i18n="detecting">Detectando...</span>
                 <i class="fa-solid fa-chevron-down chevron" aria-hidden="true"></i>
             </button>
+            <button type="button" id="notif-trigger" class="user-info-btn notif-trigger" data-i18n-aria-label="notifs.open" aria-haspopup="dialog">
+                <i class="fa-regular fa-bell" aria-hidden="true"></i>
+                <span data-i18n="notifs.button">Notificaciones</span>
+                <span class="notif-active-dot" data-field="notif-active-dot" aria-hidden="true"></span>
+            </button>
             <span id="user-clock">
                 <i class="fa-regular fa-clock" aria-hidden="true"></i>
                 <span id="user-clock-text">--:--:--</span>
@@ -85,6 +90,105 @@
             <button type="button" id="tz-reset" class="tz-reset-btn" data-i18n="tz_picker.use_system">
                 Usar zona horaria del sistema
             </button>
+        </div>
+    </div>
+
+    <!-- Modal de notificaciones -->
+    <div id="notif-modal" class="notif-modal hidden" role="dialog" aria-modal="true" aria-labelledby="notif-modal-title">
+        <div class="notif-modal-card">
+            <div class="notif-modal-header">
+                <h3 id="notif-modal-title">
+                    <i class="fa-regular fa-bell" aria-hidden="true"></i>
+                    <span data-i18n="notifs.title">Notificaciones</span>
+                </h3>
+                <button type="button" id="notif-modal-close" data-i18n-aria-label="notifs.close" aria-label="Cerrar">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="notif-modal-body">
+
+                <!-- Master toggle -->
+                <div class="notif-master">
+                    <label class="notif-master-label">
+                        <input type="checkbox" id="notif-master-toggle" />
+                        <span class="notif-switch"></span>
+                        <span data-i18n="notifs.master">Activar notificaciones del navegador</span>
+                    </label>
+                    <p id="notif-permission-status" class="notif-permission-status"></p>
+                </div>
+
+                <!-- Eventos macro -->
+                <div class="notif-section">
+                    <h4 data-i18n="notifs.macro_title">Eventos macro</h4>
+                    <p class="notif-section-hint" data-i18n="notifs.macro_hint">Te avisa 5 minutos antes</p>
+                    <label class="notif-row"><input type="checkbox" data-preset="fomc"><span data-i18n="notifs.preset.fomc">FOMC (decisión de la Fed)</span></label>
+                    <label class="notif-row"><input type="checkbox" data-preset="nfp"><span data-i18n="notifs.preset.nfp">NFP (empleo US)</span></label>
+                    <label class="notif-row"><input type="checkbox" data-preset="cpi"><span data-i18n="notifs.preset.cpi">CPI (inflación US)</span></label>
+                    <label class="notif-row"><input type="checkbox" data-preset="cme"><span data-i18n="notifs.preset.cme">CME (vencimiento futuros)</span></label>
+                </div>
+
+                <!-- Aperturas de mercados -->
+                <div class="notif-section">
+                    <h4 data-i18n="notifs.opens_title">Aperturas de mercado</h4>
+                    <p class="notif-section-hint" data-i18n="notifs.opens_hint">Te avisa al momento de la apertura</p>
+                    <label class="notif-row"><input type="checkbox" data-preset="openNasdaq"><span data-i18n="notifs.preset.openNasdaq">NASDAQ abre</span></label>
+                    <label class="notif-row"><input type="checkbox" data-preset="openNY"><span data-i18n="notifs.preset.openNY">New York (Forex) abre</span></label>
+                    <label class="notif-row"><input type="checkbox" data-preset="openLondon"><span data-i18n="notifs.preset.openLondon">London abre</span></label>
+                    <label class="notif-row"><input type="checkbox" data-preset="openTokyo"><span data-i18n="notifs.preset.openTokyo">Tokyo abre</span></label>
+                    <label class="notif-row"><input type="checkbox" data-preset="openSydney"><span data-i18n="notifs.preset.openSydney">Sydney abre</span></label>
+                    <label class="notif-row"><input type="checkbox" data-preset="goldenHour"><span data-i18n="notifs.preset.goldenHour">Inicio Golden Hour (cripto)</span></label>
+                </div>
+
+                <!-- Alarmas personalizadas -->
+                <div class="notif-section">
+                    <div class="notif-section-row">
+                        <h4 data-i18n="notifs.custom_title">Alarmas personalizadas</h4>
+                        <button type="button" id="notif-add-alarm" class="notif-add-btn">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            <span data-i18n="notifs.add">Añadir</span>
+                        </button>
+                    </div>
+                    <p class="notif-section-hint" data-i18n="notifs.custom_hint">Crea tus propias alarmas (ej: "13:00 — Reanudación de sesión")</p>
+                    <div id="notif-custom-list"></div>
+
+                    <!-- Form para añadir / editar alarma -->
+                    <div id="notif-add-form" class="notif-add-form hidden">
+                        <h5 id="notif-form-title" class="notif-form-title" data-i18n="notifs.form.title_add">Nueva alarma</h5>
+                        <div class="notif-form-grid">
+                            <label class="notif-form-field">
+                                <span data-i18n="notifs.form.time">Hora</span>
+                                <input type="time" id="notif-new-time" value="13:00">
+                            </label>
+                            <label class="notif-form-field notif-form-field-wide">
+                                <span data-i18n="notifs.form.message">Mensaje</span>
+                                <input type="text" id="notif-new-message" maxlength="80" data-i18n-placeholder="notifs.form.message_placeholder" placeholder="Ej: Reanudación de sesión">
+                            </label>
+                        </div>
+                        <div class="notif-form-field">
+                            <span data-i18n="notifs.form.days">Días de la semana</span>
+                            <div class="notif-days-row">
+                                <label class="notif-day"><input type="checkbox" value="1" checked><span>L</span></label>
+                                <label class="notif-day"><input type="checkbox" value="2" checked><span>M</span></label>
+                                <label class="notif-day"><input type="checkbox" value="3" checked><span>X</span></label>
+                                <label class="notif-day"><input type="checkbox" value="4" checked><span>J</span></label>
+                                <label class="notif-day"><input type="checkbox" value="5" checked><span>V</span></label>
+                                <label class="notif-day"><input type="checkbox" value="6"><span>S</span></label>
+                                <label class="notif-day"><input type="checkbox" value="0"><span>D</span></label>
+                            </div>
+                        </div>
+                        <div class="notif-form-actions">
+                            <button type="button" id="notif-cancel-add" class="notif-btn notif-btn-secondary" data-i18n="notifs.form.cancel">Cancelar</button>
+                            <button type="button" id="notif-confirm-add" class="notif-btn notif-btn-primary" data-i18n="notifs.form.save">Guardar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="notif-disclaimer">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    <span data-i18n="notifs.disclaimer">Las notificaciones requieren tener la pestaña abierta. Si cierras el navegador, vuelve a abrirla y se reprogramarán automáticamente.</span>
+                </div>
+            </div>
         </div>
     </div>
 

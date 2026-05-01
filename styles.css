@@ -151,6 +151,408 @@ h1 {
     margin-left: 2px;
 }
 
+/* --- Botón de notificaciones (header) --- */
+.notif-trigger {
+    position: relative;
+}
+.notif-active-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: none;
+    box-shadow: 0 0 0 2px var(--bg-muted);
+}
+.notif-trigger.is-active .notif-active-dot {
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+.notif-trigger.is-active i {
+    color: var(--accent);
+}
+
+/* --- Modal de notificaciones --- */
+.notif-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8, 12, 22, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: var(--space-3);
+    animation: tz-fade-in 0.18s ease-out;
+}
+.notif-modal-card {
+    width: 100%;
+    max-width: 540px;
+    max-height: min(720px, 92vh);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-strong);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: tz-pop 0.22s cubic-bezier(0.21, 1.02, 0.42, 1.01);
+}
+.notif-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.notif-modal-header h3 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.notif-modal-header h3 i { color: var(--accent); }
+.notif-modal-header button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+}
+.notif-modal-header button:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+
+.notif-modal-body {
+    padding: var(--space-3) var(--space-5) var(--space-5);
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Master toggle */
+.notif-master {
+    padding: var(--space-3);
+    background: rgba(46, 204, 113, 0.04);
+    border: 1px solid rgba(46, 204, 113, 0.18);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+}
+.notif-master-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--text);
+    user-select: none;
+}
+.notif-master-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.notif-switch {
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--bar-bg);
+    border: 1px solid var(--border);
+    position: relative;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    flex-shrink: 0;
+}
+.notif-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+.notif-master-label input:checked + .notif-switch {
+    background: rgba(46, 204, 113, 0.25);
+    border-color: var(--accent);
+}
+.notif-master-label input:checked + .notif-switch::after {
+    transform: translateX(16px);
+    background: var(--accent);
+}
+.notif-permission-status {
+    margin-top: 8px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+.notif-permission-status.is-error { color: var(--accent-danger); }
+.notif-permission-status.is-ok { color: var(--accent); }
+
+/* Sections */
+.notif-section { margin-bottom: var(--space-4); }
+.notif-section h4 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+.notif-section-hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+.notif-section-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+/* Filas de presets (con checkbox) */
+.notif-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.12s ease;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+    font-weight: 600;
+    user-select: none;
+}
+.notif-row:hover { background: rgba(255, 255, 255, 0.03); }
+.notif-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.notif-row small { color: var(--text-muted); font-weight: 500; }
+
+/* Add custom alarm */
+.notif-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(46, 204, 113, 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+.notif-add-btn:hover { background: rgba(46, 204, 113, 0.18); }
+
+.notif-add-form {
+    margin-top: 10px;
+    padding: var(--space-3);
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+.notif-form-title {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+}
+.notif-form-grid {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.notif-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.notif-form-field > span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+}
+.notif-form-field input[type="time"],
+.notif-form-field input[type="text"] {
+    padding: 8px 10px;
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+.notif-form-field input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.18);
+}
+
+.notif-days-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.notif-day {
+    cursor: pointer;
+    user-select: none;
+}
+.notif-day input { display: none; }
+.notif-day span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-weight: 700;
+    transition: all 0.12s ease;
+}
+.notif-day input:checked + span {
+    background: rgba(46, 204, 113, 0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.notif-day:hover span { transform: translateY(-1px); }
+
+.notif-form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: flex-end;
+}
+.notif-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    background: var(--bg-muted);
+    color: var(--text-soft);
+}
+.notif-btn-primary {
+    background: var(--accent);
+    border-color: var(--accent-strong);
+    color: #fff;
+}
+.notif-btn-primary:hover { background: var(--accent-strong); }
+.notif-btn-secondary:hover { background: rgba(255,255,255,0.04); }
+
+/* Lista de alarmas custom */
+.notif-custom-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+}
+.notif-custom-item.is-disabled { opacity: 0.5; }
+.notif-custom-time {
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    min-width: 56px;
+}
+.notif-custom-message {
+    flex: 1;
+    color: var(--text-soft);
+    font-size: 0.88rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.notif-custom-days {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.notif-custom-actions {
+    display: flex;
+    gap: 4px;
+}
+.notif-custom-actions button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+.notif-custom-actions button:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+.notif-custom-actions .notif-edit:hover { color: var(--accent-info); }
+.notif-custom-actions .notif-delete:hover { color: var(--accent-danger); }
+
+.notif-empty-list {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 16px;
+    font-style: italic;
+}
+
+.notif-disclaimer {
+    margin-top: var(--space-3);
+    padding: 12px 14px;
+    background: rgba(56, 189, 248, 0.06);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: var(--radius-sm);
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.notif-disclaimer i { color: var(--accent-info); flex-shrink: 0; margin-top: 2px; }
+
+@media (max-width: 480px) {
+    .notif-modal { padding: 0; align-items: flex-end; }
+    .notif-modal-card {
+        max-height: 92vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        animation: tz-slide-up 0.24s cubic-bezier(0.21, 1.02, 0.42, 1.01);
+    }
+    .notif-form-grid { grid-template-columns: 1fr; }
+}
+
 /* --- Modal de zona horaria --- */
 .tz-modal {
     position: fixed;
