@@ -791,6 +791,7 @@ function buildCardHTML(mkt) {
                 </div>
                 <div class="progress-track">
                     <div class="progress-fill" data-field="progress-fill"></div>
+                    <div class="progress-lunch-zone hidden" data-field="lunch-zone" aria-hidden="true"></div>
                 </div>
             </div>
 
@@ -862,8 +863,10 @@ function updateCard(card, mkt, data) {
     // Durante este periodo el volumen baja porque los traders institucionales van
     // a comer; el mercado sigue abierto pero los movimientos son menos confiables.
     const lunchRow = card.querySelector('[data-field="lunch-row"]');
+    const lunchZone = card.querySelector('[data-field="lunch-zone"]');
+    const lunchWindow = Array.isArray(mkt.windows) ? mkt.windows.find(w => w.kind === 'calm') : null;
+
     if (lunchRow) {
-        const lunchWindow = Array.isArray(mkt.windows) ? mkt.windows.find(w => w.kind === 'calm') : null;
         if (lunchWindow) {
             const lunchStart = getFormattedUserTimeFromMarketTime(lunchWindow.startH, lunchWindow.startM || 0, mkt.tz);
             const lunchEnd = getFormattedUserTimeFromMarketTime(lunchWindow.endH, lunchWindow.endM || 0, mkt.tz);
@@ -871,6 +874,28 @@ function updateCard(card, mkt, data) {
             lunchRow.classList.remove('hidden');
         } else {
             lunchRow.classList.add('hidden');
+        }
+    }
+
+    // Pintar la zona del almuerzo en la barra de progreso (overlay violeta sutil)
+    if (lunchZone) {
+        if (lunchWindow) {
+            const openMins = mkt.open * 60 + (mkt.openMin || 0);
+            const closeMins = data.closeMinsEffective; // contempla early close
+            const lunchStartM = lunchWindow.startH * 60 + (lunchWindow.startM || 0);
+            const lunchEndM = lunchWindow.endH * 60 + (lunchWindow.endM || 0);
+            const totalDur = closeMins - openMins;
+            if (totalDur > 0 && lunchEndM > openMins && lunchStartM < closeMins) {
+                const startPct = Math.max(0, ((lunchStartM - openMins) / totalDur) * 100);
+                const endPct = Math.min(100, ((lunchEndM - openMins) / totalDur) * 100);
+                lunchZone.style.left = `${startPct}%`;
+                lunchZone.style.width = `${endPct - startPct}%`;
+                lunchZone.classList.remove('hidden');
+            } else {
+                lunchZone.classList.add('hidden');
+            }
+        } else {
+            lunchZone.classList.add('hidden');
         }
     }
 

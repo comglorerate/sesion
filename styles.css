@@ -451,12 +451,31 @@ section { margin-bottom: var(--space-8); }
     background-color: var(--bar-bg);
     border-radius: 999px;
     overflow: hidden;
+    position: relative;
 }
 
 .progress-fill {
     height: 100%;
     width: 0%;
     transition: width 0.5s ease;
+    position: relative;
+    z-index: 1;
+}
+
+/* Zona del almuerzo / lunch lull dibujada permanentemente sobre la barra.
+   Va EN CIMA del fill con transparencia → se ve donde el almuerzo está, ya sea
+   antes (sobre el track gris) o cuando el progreso ya pasó (tinta el verde). */
+.progress-lunch-zone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: rgba(139, 92, 246, 0.55);
+    pointer-events: none;
+    z-index: 2;
+    border-left: 1px solid rgba(167, 139, 250, 0.7);
+    border-right: 1px solid rgba(167, 139, 250, 0.7);
+    box-shadow: 0 0 6px rgba(139, 92, 246, 0.35) inset;
+    transition: left 0.5s ease, width 0.5s ease, opacity 0.2s ease;
 }
 
 .fill-active { background: linear-gradient(90deg, var(--accent-strong), var(--accent)); }
