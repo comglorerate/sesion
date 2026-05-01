@@ -514,16 +514,14 @@ function isForexMarket(id) { return forexMarkets.some(m => m.id === id); }
 // Helpers de tiempo
 // ============================================================
 function formatLocalTime(dateObj) {
-    const opts = { hour: '2-digit', minute: '2-digit' };
+    const opts = { hour: '2-digit', minute: '2-digit', hour12: false };
     if (userTimezoneOverride) opts.timeZone = userTimezoneOverride;
     return new Intl.DateTimeFormat(undefined, opts).format(dateObj);
 }
 
-// Formatea una hora cruda (h, m en formato 24h) en 12h con a.m./p.m.
-// Respeta la zona horaria efectiva del usuario.
+// Formatea una hora cruda (h, m en formato 24h) — formato militar, respetando
+// la zona horaria efectiva del usuario.
 function formatHourMin12h(h, m) {
-    // Construir un Date concreto con esa hora en la zona del usuario para
-    // formatear consistentemente con su locale.
     const tz = getEffectiveUserTimezone();
     try {
         const today = TzUtils.getZonedParts(Date.now(), tz);
@@ -531,13 +529,11 @@ function formatHourMin12h(h, m) {
             year: today.year, month: today.month, day: today.day,
             hour: h, minute: m, second: 0
         }, tz);
-        const opts = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz };
+        const opts = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz };
         return new Intl.DateTimeFormat(undefined, opts).format(utcInstant);
     } catch (e) {
-        // Fallback manual
-        const period = h >= 12 ? 'p.m.' : 'a.m.';
-        const h12 = h % 12 === 0 ? 12 : h % 12;
-        return `${h12}:${pad2(m)} ${period}`;
+        // Fallback manual (24h)
+        return `${pad2(h)}:${pad2(m)}`;
     }
 }
 
@@ -899,11 +895,11 @@ function updateCard(card, mkt, data) {
         }
     }
 
-    // Hora del mercado actual (formato 12h con a.m./p.m. consistente con el resto)
+    // Hora del mercado actual (formato 24h militar)
     let mktTimeStr = '';
     if (data.nowZone) {
         try {
-            const opts = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: mkt.tz };
+            const opts = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: mkt.tz };
             mktTimeStr = new Intl.DateTimeFormat(undefined, opts).format(new Date());
         } catch (e) {
             mktTimeStr = `${pad2(data.nowZone.h)}:${pad2(data.nowZone.m)}`;
@@ -1473,13 +1469,13 @@ function setupTimelineScrub() {
 function updateClock() {
     const now = new Date();
     const tz = getEffectiveUserTimezone();
-    const opts = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    const opts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
     if (userTimezoneOverride) opts.timeZone = userTimezoneOverride;
     let formatted;
     try {
         formatted = new Intl.DateTimeFormat(undefined, opts).format(now);
     } catch (e) {
-        formatted = now.toLocaleTimeString();
+        formatted = now.toLocaleTimeString([], { hour12: false });
     }
 
     // Reloj del header
@@ -1492,7 +1488,7 @@ function updateClock() {
     try {
         const cryptoNy = document.querySelector('[data-field="crypto-ny-time"]');
         if (cryptoNy) {
-            const opts2 = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' };
+            const opts2 = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/New_York' };
             cryptoNy.textContent = new Intl.DateTimeFormat(undefined, opts2).format(now);
         }
     } catch (e) { /* ignore */ }
@@ -1716,9 +1712,9 @@ function renderCryptoCard(nowMs) {
         }
     }
 
-    // Hora NY (referencia institucional para el cripto) en formato 12h con a.m./p.m.
+    // Hora NY (referencia institucional para el cripto) en formato 24h militar
     try {
-        const opts = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' };
+        const opts = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/New_York' };
         const nyTime = new Intl.DateTimeFormat(undefined, opts).format(new Date(nowMs));
         setText(card, 'crypto-ny-time', nyTime);
     } catch (e) { /* ignore */ }
@@ -1803,7 +1799,7 @@ function findNextCME(nowMs) {
 function formatNewsDate(date) {
     const tz = getEffectiveUserTimezone();
     const optsDate = { day: 'numeric', month: 'short', year: 'numeric', timeZone: tz };
-    const optsTime = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz };
+    const optsTime = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz };
     try {
         const dateStr = new Intl.DateTimeFormat(undefined, optsDate).format(date);
         const timeStr = new Intl.DateTimeFormat(undefined, optsTime).format(date);
