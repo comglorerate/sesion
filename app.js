@@ -408,9 +408,9 @@ function escapeHtml(str) {
 // cierre oficial (excepto Tokyo Stock Exchange que sí cierra; aquí la sesión Forex
 // continúa pero el volumen cae).
 const forexMarkets = [
-    { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney',  open: 7, close: 16, icon: 'fa-earth-oceania',  openDays: [0, 1, 2, 3, 4, 5],
+    { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney',  open: 7, close: 16, icon: 'fa-earth-oceania',  openDays: [1, 2, 3, 4, 5],
       windows: [{ kind: 'calm', startH: 12, startM: 0, endH: 13, endM: 0, labelKey: 'forex.lunch' }] },
-    { id: 'tokyo',  name: 'Tokyo',  tz: 'Asia/Tokyo',        open: 9, close: 18, icon: 'fa-yen-sign',       openDays: [0, 1, 2, 3, 4, 5],
+    { id: 'tokyo',  name: 'Tokyo',  tz: 'Asia/Tokyo',        open: 9, close: 18, icon: 'fa-yen-sign',       openDays: [1, 2, 3, 4, 5],
       windows: [{ kind: 'calm', startH: 11, startM: 30, endH: 12, endM: 30, labelKey: 'forex.lunch' }] },
     { id: 'london', name: 'London', tz: 'Europe/London',     open: 8, close: 17, icon: 'fa-sterling-sign',  openDays: [1, 2, 3, 4, 5],
       windows: [{ kind: 'calm', startH: 12, startM: 0, endH: 13, endM: 0, labelKey: 'forex.lunch' }] },
