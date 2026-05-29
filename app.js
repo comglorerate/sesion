@@ -94,11 +94,11 @@ const translations = {
             open: 'Abrir notificaciones',
             close: 'Cerrar',
             title: 'Notificaciones',
-            master: 'Activar notificaciones del navegador',
-            permission_default: 'Permiso aún no concedido. Activa el toggle para pedirlo.',
+            master: 'Activar notificaciones',
+            permission_default: 'Permiso aún no concedido. Activa el interruptor para pedirlo.',
             permission_granted: '✓ Permiso concedido — listo para avisarte.',
-            permission_denied: '✗ Permiso denegado. Permítelo desde la barra de direcciones del navegador.',
-            permission_unsupported: 'Tu navegador no soporta notificaciones.',
+            permission_denied: '✗ Permiso denegado. Actívalo en los ajustes de notificaciones de la app.',
+            permission_unsupported: 'Este dispositivo no soporta notificaciones.',
             macro_title: 'Eventos macro',
             macro_hint: 'Te avisa 5 minutos antes',
             opens_title: 'Aperturas de mercado',
@@ -107,7 +107,7 @@ const translations = {
             custom_hint: 'Crea tus propias alarmas (ej. "13:00 — Reanudación de sesión")',
             add: 'Añadir',
             empty: 'No hay alarmas personalizadas aún.',
-            disclaimer: 'Las notificaciones requieren tener la pestaña abierta. Si cierras el navegador, vuelve a abrirla y se reprograman automáticamente.',
+            disclaimer: 'Las notificaciones se entregan a través de Android y funcionan aunque cierres la app. Se reprograman automáticamente.',
             preset: {
                 fomc: 'FOMC (decisión de la Fed)',
                 nfp: 'NFP (empleo US)',
@@ -258,11 +258,11 @@ const translations = {
             open: 'Open notifications',
             close: 'Close',
             title: 'Notifications',
-            master: 'Enable browser notifications',
+            master: 'Enable notifications',
             permission_default: 'Permission not granted yet. Toggle to request it.',
             permission_granted: '✓ Permission granted — ready to alert you.',
-            permission_denied: '✗ Permission denied. Allow from your browser address bar.',
-            permission_unsupported: 'Your browser does not support notifications.',
+            permission_denied: '✗ Permission denied. Enable it in the app notification settings.',
+            permission_unsupported: 'This device does not support notifications.',
             macro_title: 'Macro events',
             macro_hint: 'Alerts 5 minutes before',
             opens_title: 'Market opens',
@@ -271,7 +271,7 @@ const translations = {
             custom_hint: 'Create your own alarms (e.g. "1:00 PM — Session resume")',
             add: 'Add',
             empty: 'No custom alarms yet.',
-            disclaimer: 'Notifications require the tab to be open. If you close the browser, reopen the page and they will reschedule automatically.',
+            disclaimer: 'Notifications are delivered through Android and work even if you close the app. They reschedule automatically.',
             preset: {
                 fomc: 'FOMC (Fed rate decision)',
                 nfp: 'NFP (US jobs)',
@@ -945,6 +945,12 @@ function updateCard(card, mkt, data) {
     if (!card) return;
     const statusLabel = t(data.labelId, data.labelParams);
 
+    // Resaltar la tarjeta según su estado (abierta brilla, cerrada se atenúa).
+    card.classList.remove('card-open', 'card-soon', 'card-closed');
+    if (data.status === 'open') card.classList.add('card-open');
+    else if (data.status === 'soon') card.classList.add('card-soon');
+    else card.classList.add('card-closed');
+
     // Status badge: clases + texto
     const badge = card.querySelector('[data-field="status-badge"]');
     if (badge) {
@@ -1126,6 +1132,75 @@ function renderMarkets(opts = {}) {
 
     // Sección de Noticias / Eventos macro
     try { renderNewsSection(now); } catch (e) { console.warn('news error', e); }
+
+    // Resumen "de un vistazo" (chips de mercados abiertos/cerrados)
+    try { renderMarketSummary(now); } catch (e) { console.warn('summary error', e); }
+}
+
+// Pestañas: muestra solo las secciones de la pestaña activa.
+function setupMarketTabs() {
+    const bar = document.getElementById('market-tabs');
+    if (!bar) return;
+    const buttons = Array.from(bar.querySelectorAll('[data-tab-btn]'));
+    const sections = Array.from(document.querySelectorAll('main section[data-tab]'));
+    const STORAGE_KEY = 'sesion_active_tab';
+
+    const activate = (tab) => {
+        buttons.forEach(b => {
+            const on = b.getAttribute('data-tab-btn') === tab;
+            b.classList.toggle('is-active', on);
+            b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        sections.forEach(s => {
+            s.style.display = (s.getAttribute('data-tab') === tab) ? '' : 'none';
+        });
+        try { localStorage.setItem(STORAGE_KEY, tab); } catch (e) {}
+        // Re-render para que elementos que dependen del ancho (timeline) se dibujen bien
+        // al pasar de oculto a visible.
+        try { renderMarkets(); } catch (e) {}
+    };
+
+    buttons.forEach(b => {
+        b.addEventListener('click', () => activate(b.getAttribute('data-tab-btn')));
+    });
+
+    let initial = 'cripto';
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved && buttons.some(b => b.getAttribute('data-tab-btn') === saved)) initial = saved;
+    } catch (e) {}
+    activate(initial);
+}
+
+// Resumen compacto en la parte superior: un chip por mercado con su estado actual.
+function renderMarketSummary(nowMs) {
+    const el = document.getElementById('market-summary');
+    if (!el) return;
+    const now = nowMs ?? Date.now();
+
+    const items = [];
+    // Cripto: 24/7 siempre abierto
+    items.push({ name: 'Cripto', status: 'open' });
+    // Forex + acciones en orden lógico de la jornada
+    const order = ['sydney', 'tokyo', 'london', 'ny', 'nasdaq'];
+    const byId = {};
+    forexMarkets.forEach(m => { byId[m.id] = m; });
+    stockMarkets.forEach(m => { byId[m.id] = m; });
+    order.forEach(id => {
+        const mkt = byId[id];
+        if (!mkt) return;
+        const data = getMarketData(mkt, now);
+        items.push({ name: mkt.name, status: data.status });
+    });
+
+    const stateClass = (s) => (s === 'open' ? 'sum-open' : (s === 'soon' ? 'sum-soon' : 'sum-closed'));
+    const stateLabel = (s) => (s === 'open' ? 'Abierto' : (s === 'soon' ? 'Pronto' : 'Cerrado'));
+
+    el.innerHTML = items.map(it => `
+        <span class="sum-chip ${stateClass(it.status)}" title="${escapeHtml(it.name)}: ${escapeHtml(stateLabel(it.status))}">
+            <span class="sum-dot"></span>${escapeHtml(it.name)}
+        </span>
+    `).join('');
 }
 
 // ============================================================
@@ -1595,13 +1670,13 @@ function setupTimelineScrub() {
 function updateClock() {
     const now = new Date();
     const tz = getEffectiveUserTimezone();
-    const opts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    const opts = { hour: '2-digit', minute: '2-digit', hour12: false };
     if (userTimezoneOverride) opts.timeZone = userTimezoneOverride;
     let formatted;
     try {
         formatted = new Intl.DateTimeFormat(undefined, opts).format(now);
     } catch (e) {
-        formatted = now.toLocaleTimeString([], { hour12: false });
+        formatted = now.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
     }
 
     // Reloj del header
@@ -2067,11 +2142,44 @@ function saveNotificationState() {
     catch (e) { /* ignore */ }
 }
 
+// Puente nativo (app Android): cuando existe, las notificaciones se muestran y
+// programan con el sistema Android (AlarmManager + NotificationManager), de modo
+// que disparan aunque la app esté cerrada. En la web normal se usa Notification API.
+function __hasNativeNotify() {
+    return typeof window !== 'undefined'
+        && window.AndroidNotify
+        && typeof window.AndroidNotify.setAlarms === 'function';
+}
+
 function notifSupported() {
+    if (__hasNativeNotify()) return true;
     return typeof window !== 'undefined' && 'Notification' in window;
 }
 
+function notifPermission() {
+    if (__hasNativeNotify()) {
+        try { return window.AndroidNotify.getPermission(); } catch (e) { return 'default'; }
+    }
+    return ('Notification' in window) ? Notification.permission : 'denied';
+}
+
+let __notifPermPending = null;
+if (typeof window !== 'undefined') {
+    window.__onNotifPermission = function(result) {
+        if (__notifPermPending) { __notifPermPending(result); __notifPermPending = null; }
+    };
+}
+
 async function ensureNotificationPermission() {
+    if (__hasNativeNotify()) {
+        const cur = notifPermission();
+        if (cur === 'granted') return 'granted';
+        return new Promise((resolve) => {
+            __notifPermPending = resolve;
+            try { window.AndroidNotify.requestPermission(); }
+            catch (e) { __notifPermPending = null; resolve('denied'); }
+        });
+    }
     if (!notifSupported()) return 'unsupported';
     if (Notification.permission === 'granted') return 'granted';
     if (Notification.permission === 'denied') return 'denied';
@@ -2082,6 +2190,9 @@ async function ensureNotificationPermission() {
 }
 
 function showNotification(title, body) {
+    // En la app nativa las notificaciones las dispara Android (AlarmManager),
+    // no este código; aquí solo cubrimos el caso de navegador web.
+    if (__hasNativeNotify()) return;
     if (!notifSupported() || Notification.permission !== 'granted') return;
     try {
         const n = new Notification(title, {
@@ -2187,13 +2298,50 @@ function scheduleOneNotif(delay, title, body, onFireExtra) {
 
 function rescheduleAllNotifications() {
     clearAllNotifTimers();
-    if (!notificationState.enabled || !notifSupported() || Notification.permission !== 'granted') {
+    if (!notificationState.enabled || !notifSupported() || notifPermission() !== 'granted') {
+        if (__hasNativeNotify()) { try { window.AndroidNotify.setAlarms('[]'); } catch (e) {} }
         updateNotifTriggerVisual();
         return;
     }
 
     const now = Date.now();
 
+    // App nativa Android: delegamos la programación al sistema (dispara en segundo plano).
+    if (__hasNativeNotify()) {
+        const alarms = [];
+        Object.keys(notificationState.presets).forEach(presetId => {
+            if (!notificationState.presets[presetId]) return;
+            const evt = findNextPresetEvent(presetId, now);
+            if (!evt || !(evt.fireAt > now)) return;
+            alarms.push({
+                id: 'preset_' + presetId,
+                title: evt.title,
+                body: evt.body || '',
+                fireAt: evt.fireAt,
+                repeat: false
+            });
+        });
+        notificationState.custom.forEach(alarm => {
+            if (!alarm.enabled) return;
+            const next = nextCustomAlarmTime(alarm, now);
+            if (!next) return;
+            alarms.push({
+                id: 'custom_' + alarm.id,
+                title: alarm.message || '⏰ Alarma',
+                body: '',
+                fireAt: next,
+                repeat: true,
+                time: alarm.time,
+                days: (Array.isArray(alarm.days) && alarm.days.length) ? alarm.days : [0,1,2,3,4,5,6]
+            });
+        });
+        try { window.AndroidNotify.setAlarms(JSON.stringify(alarms)); }
+        catch (e) { console.warn('setAlarms error:', e); }
+        updateNotifTriggerVisual();
+        return;
+    }
+
+    // Navegador web: temporizadores en memoria (requieren la pestaña abierta).
     // Presets
     Object.keys(notificationState.presets).forEach(presetId => {
         if (!notificationState.presets[presetId]) return;
@@ -2243,9 +2391,13 @@ function setupNotificationsUI() {
 
     const open = () => {
         modal.classList.remove('hidden');
+        document.body.classList.add('notif-modal-open');
         refreshNotifModal();
     };
-    const close = () => modal.classList.add('hidden');
+    const close = () => {
+        modal.classList.add('hidden');
+        document.body.classList.remove('notif-modal-open');
+    };
 
     trigger.addEventListener('click', open);
     if (closeBtn) closeBtn.addEventListener('click', close);
@@ -2402,10 +2554,10 @@ function setPermissionStatus(status) {
 function refreshNotifModal() {
     // Master toggle estado
     const masterToggle = document.getElementById('notif-master-toggle');
-    if (masterToggle) masterToggle.checked = notificationState.enabled && Notification.permission === 'granted';
+    if (masterToggle) masterToggle.checked = notificationState.enabled && notifPermission() === 'granted';
 
     // Permission status
-    const status = !notifSupported() ? 'unsupported' : Notification.permission;
+    const status = !notifSupported() ? 'unsupported' : notifPermission();
     setPermissionStatus(status);
 
     // Presets
@@ -2470,6 +2622,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadNotificationState();
     setupNotificationsUI();
     rescheduleAllNotifications();
+    setupMarketTabs();
 
     const initial = detectLanguage();
     setLanguage(initial); // esto invoca el primer render

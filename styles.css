@@ -1,19 +1,19 @@
 :root {
-    /* Palette */
-    --bg: #0b1222;
-    --bg-muted: #111a2f;
-    --card: #141f38;
-    --card-highlight: rgba(46, 201, 141, 0.08);
-    --text: #f8fafc;
-    --text-soft: #cbd5e1;
-    --text-muted: #94a3b8;
-    --accent: #2ecc71;
-    --accent-strong: #1fb86a;
-    --accent-warning: #f59e0b;
-    --accent-danger: #ef4444;
+    /* Palette — tema "Aqua Deep" unificado */
+    --bg: #0c1628;
+    --bg-muted: #111c34;
+    --card: #15203a;
+    --card-highlight: rgba(45, 212, 191, 0.09);
+    --text: #eaf1fb;
+    --text-soft: #c4d0e6;
+    --text-muted: #8593b2;
+    --accent: #2dd4bf;
+    --accent-strong: #14b8a6;
+    --accent-warning: #fbbf24;
+    --accent-danger: #fb7185;
     --accent-info: #38bdf8;          /* azul cielo para "soon" / próxima apertura */
-    --accent-purple: #8b5cf6;        /* violeta tranquilo para "calm zone" */
-    --border: #23314f;
+    --accent-purple: #a78bfa;        /* violeta para "calm zone" */
+    --border: #26375c;
     --shadow-strong: 0 20px 45px rgba(0, 0, 0, 0.35);
     --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.22);
     --radius-sm: 10px;
@@ -26,15 +26,15 @@
     --space-6: 24px;
     --space-7: 28px;
     --space-8: 32px;
-    --bar-bg: #25324c;
+    --bar-bg: #233252;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     font-family: 'Inter', sans-serif;
-    background: radial-gradient(circle at 20% 20%, rgba(46, 201, 141, 0.06), transparent 30%),
-                radial-gradient(circle at 80% 0%, rgba(64, 121, 255, 0.07), transparent 30%),
+    background: radial-gradient(circle at 20% 20%, rgba(45, 212, 191, 0.07), transparent 30%),
+                radial-gradient(circle at 80% 0%, rgba(167, 139, 250, 0.07), transparent 30%),
                 var(--bg);
     color: var(--text);
     line-height: 1.7;
@@ -54,19 +54,24 @@ a { color: inherit; }
 header {
     background: linear-gradient(135deg, var(--bg-muted), #0c1630 70%);
     border-bottom: 1px solid var(--border);
-    padding: var(--space-8) var(--space-4) var(--space-6);
+    padding: var(--space-5) var(--space-4) var(--space-4);
     box-shadow: var(--shadow-soft);
 }
 
 header > * { max-width: 1180px; margin: 0 auto; }
 
 h1 {
-    font-size: clamp(2.1rem, 3vw, 2.8rem);
+    font-size: clamp(1.35rem, 5vw, 1.9rem);
     font-weight: 800;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.03em;
     text-align: center;
     margin-bottom: var(--space-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
+h1 i { font-size: 0.9em; color: var(--accent); }
 
 .top-nav {
     display: flex;
@@ -110,25 +115,25 @@ h1 {
 .user-info {
     display: flex;
     justify-content: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
     flex-wrap: wrap;
     color: var(--text);
-    margin-top: var(--space-2);
+    margin-top: 0;
 }
 
 .user-info > span,
 .user-info > .user-info-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
+    gap: 7px;
+    padding: 7px 12px;
     border-radius: 999px;
-    border: 1px solid rgba(46, 204, 113, 0.35);
-    background: rgba(46, 204, 113, 0.08);
+    border: 1px solid rgba(45, 212, 191, 0.30);
+    background: rgba(45, 212, 191, 0.07);
     color: var(--text);
     font-weight: 600;
     font-family: inherit;
-    font-size: inherit;
+    font-size: 0.85rem;
     line-height: 1;
 }
 
@@ -137,8 +142,8 @@ h1 {
     transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 .user-info-btn:hover {
-    background: rgba(46, 204, 113, 0.16);
-    border-color: rgba(46, 204, 113, 0.55);
+    background: rgba(45, 212, 191, 0.16);
+    border-color: rgba(45, 212, 191, 0.55);
 }
 .user-info-btn:active { transform: scale(0.98); }
 .user-info-btn:focus-visible {
@@ -184,6 +189,13 @@ h1 {
     -webkit-backdrop-filter: blur(6px);
     padding: var(--space-3);
     animation: tz-fade-in 0.18s ease-out;
+    overscroll-behavior: contain;
+    touch-action: none;
+}
+
+/* Bloquea el scroll del contenido de fondo mientras el modal está abierto */
+body.notif-modal-open {
+    overflow: hidden;
 }
 .notif-modal-card {
     width: 100%;
@@ -234,6 +246,9 @@ h1 {
     padding: var(--space-3) var(--space-5) var(--space-5);
     overflow-y: auto;
     flex: 1;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Master toggle */
@@ -761,6 +776,81 @@ section { margin-bottom: var(--space-8); }
     margin-top: 6px;
 }
 
+/* --- Pestañas de secciones --- */
+.market-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: var(--space-5);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px;
+}
+.market-tab {
+    flex: 1;
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: -0.01em;
+    padding: 9px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+    min-height: 40px;
+}
+.market-tab:hover { color: var(--text-soft); }
+.market-tab.is-active {
+    background: linear-gradient(135deg, var(--accent), #14b8a6);
+    color: #04201d;
+    box-shadow: 0 4px 14px rgba(45, 212, 191, 0.25);
+}
+
+/* --- Resumen "de un vistazo" --- */
+.market-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: var(--space-5);
+}
+.sum-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text-soft);
+    white-space: nowrap;
+}
+.sum-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-muted);
+    flex: none;
+}
+.sum-chip.sum-open {
+    border-color: rgba(45, 212, 191, 0.45);
+    background: rgba(45, 212, 191, 0.10);
+    color: var(--text);
+}
+.sum-chip.sum-open .sum-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18);
+}
+.sum-chip.sum-soon {
+    border-color: rgba(251, 191, 36, 0.40);
+    background: rgba(251, 191, 36, 0.08);
+}
+.sum-chip.sum-soon .sum-dot { background: var(--accent-warning); }
+.sum-chip.sum-closed { opacity: 0.7; }
+
 .market-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -774,15 +864,35 @@ section { margin-bottom: var(--space-8); }
     border-radius: var(--radius-lg);
     padding: var(--space-6);
     box-shadow: var(--shadow-soft);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
     position: relative;
 }
 
 .card:hover {
     transform: translateY(-6px);
     box-shadow: var(--shadow-strong);
-    border-color: rgba(46, 204, 113, 0.4);
+    border-color: rgba(45, 212, 191, 0.4);
 }
+
+/* Resaltado por estado: abierta destaca, cerrada se atenúa */
+.card.card-open {
+    border-color: rgba(45, 212, 191, 0.55);
+    box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.35), 0 12px 30px rgba(45, 212, 191, 0.12);
+}
+.card.card-open::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 14px; bottom: 14px;
+    width: 3px; border-radius: 0 3px 3px 0;
+    background: var(--accent);
+}
+.card.card-soon {
+    border-color: rgba(251, 191, 36, 0.40);
+}
+.card.card-closed {
+    opacity: 0.62;
+}
+.card.card-closed:hover { opacity: 1; }
 
 .card-header {
     display: flex;
