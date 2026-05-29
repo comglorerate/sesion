@@ -2066,8 +2066,8 @@ async function fetchLiveCalendar(force) {
 function liveLabels() {
     const es = currentLang !== 'en';
     return es
-        ? { week: 'Esta semana', guide: 'Guía de eventos clave', updating: 'Actualizando…', err: 'No se pudo cargar el calendario', empty: 'Sin eventos de alto impacto próximos', prev: 'prev', fc: 'est.', act: 'real', risk: 'Ventana de riesgo' }
-        : { week: 'This week', guide: 'Key events guide', updating: 'Updating…', err: 'Could not load calendar', empty: 'No upcoming high-impact events', prev: 'prev', fc: 'est.', act: 'act', risk: 'Risk window' };
+        ? { week: 'Esta semana', guide: 'Guía de eventos clave', updating: 'Actualizando…', err: 'No se pudo cargar el calendario', empty: 'Sin eventos esta semana — el calendario se renueva cada lunes. Mira la guía de eventos clave abajo.', prev: 'prev', fc: 'est.', act: 'real', risk: 'Ventana de riesgo', done: 'publicado' }
+        : { week: 'This week', guide: 'Key events guide', updating: 'Updating…', err: 'Could not load calendar', empty: 'No events this week — the calendar refreshes every Monday. See the key events guide below.', prev: 'prev', fc: 'est.', act: 'act', risk: 'Risk window', done: 'released' };
 }
 
 function renderLiveCalendar(nowMs) {
@@ -2090,12 +2090,14 @@ function renderLiveCalendar(nowMs) {
     }
 
     const now = nowMs ?? Date.now();
+    // Ventana: eventos de las últimas ~40h (ya publicados, con resultado) + todos los futuros.
+    // Así la sección es útil incluso a fin de semana (muestra lo que movió el mercado).
     const items = __liveCal.events
         .map(e => ({ ...e, ms: Date.parse(e.date) }))
         .filter(e => Number.isFinite(e.ms))
-        .filter(e => e.ms > now - 2 * 60 * 60 * 1000)  // incluye lo recién publicado (con 'actual')
+        .filter(e => e.ms > now - 40 * 60 * 60 * 1000)
         .sort((a, b) => a.ms - b.ms)
-        .slice(0, 14);
+        .slice(0, 16);
 
     if (!items.length) {
         wrap.innerHTML = `<div class="news-live-msg">${escapeHtml(L.empty)}</div>`;
@@ -2105,22 +2107,27 @@ function renderLiveCalendar(nowMs) {
     wrap.innerHTML = items.map(e => {
         const d = new Date(e.ms);
         const when = formatNewsDate(d);
-        const cd = diffToFutureCountdown(now, d);
-        const within15 = Math.abs(e.ms - now) <= 15 * 60 * 1000;
+        const isPast = e.ms <= now;
+        const cd = isPast ? null : diffToFutureCountdown(now, d);
+        const within15 = !isPast && (e.ms - now) <= 15 * 60 * 1000;
         const imp = e.impact === 'High' ? 'live-high' : 'live-med';
         const vals = [];
         if (e.actual) vals.push(`<span class="lv-act">${escapeHtml(L.act)}: <b>${escapeHtml(e.actual)}</b></span>`);
         if (e.forecast) vals.push(`<span class="lv-fc">${escapeHtml(L.fc)}: ${escapeHtml(e.forecast)}</span>`);
         if (e.previous) vals.push(`<span class="lv-prev">${escapeHtml(L.prev)}: ${escapeHtml(e.previous)}</span>`);
+        let meta;
+        if (within15) meta = ` · <span class="lv-risk">${escapeHtml(L.risk)}</span>`;
+        else if (cd) meta = ` · <b>${escapeHtml(cd)}</b>`;
+        else meta = ` · <span class="lv-done">${escapeHtml(L.done)}</span>`;
         return `
-            <div class="news-live-row ${imp} ${within15 ? 'is-now' : ''}">
+            <div class="news-live-row ${imp} ${within15 ? 'is-now' : ''} ${isPast ? 'is-past' : ''}">
                 <span class="lv-dot"></span>
                 <div class="lv-main">
                     <div class="lv-top">
                         <span class="lv-cur">${escapeHtml(e.currency)}</span>
                         <span class="lv-title">${escapeHtml(e.title)}</span>
                     </div>
-                    <div class="lv-when">${escapeHtml(when)}${cd ? ` · <b>${escapeHtml(cd)}</b>` : ''}${within15 ? ` · <span class="lv-risk">${escapeHtml(L.risk)}</span>` : ''}</div>
+                    <div class="lv-when">${escapeHtml(when)}${meta}</div>
                 </div>
                 <div class="lv-vals">${vals.join('')}</div>
             </div>`;
