@@ -1869,9 +1869,64 @@ function buildCryptoCardHTML() {
 }
 
 let __cryptoInitialRender = false;
+// Próximos eventos cripto calculables (sin API). El halving de BTC es el principal.
+// Fecha estimada del próximo halving (~bloque 1.050.000, abril 2028).
+const NEXT_BTC_HALVING_MS = Date.UTC(2028, 3, 20, 0, 0, 0);
+
+function renderCryptoEvents(nowMs) {
+    const el = document.getElementById('crypto-events');
+    if (!el) return;
+    const now = nowMs ?? Date.now();
+    const es = currentLang !== 'en';
+
+    const events = [
+        {
+            icon: 'fa-brands fa-bitcoin',
+            name: es ? 'Halving de Bitcoin' : 'Bitcoin Halving',
+            note: es ? 'Reduce a la mitad la emisión de BTC · estimado' : 'Halves BTC issuance · estimated',
+            ms: NEXT_BTC_HALVING_MS
+        }
+    ];
+
+    const fmtDays = (ms) => {
+        const days = Math.max(0, Math.round((ms - now) / 86400000));
+        if (days >= 365) {
+            const y = Math.floor(days / 365);
+            const rem = days % 365;
+            const mo = Math.round(rem / 30);
+            return es ? `~${y} a ${mo} m` : `~${y}y ${mo}m`;
+        }
+        if (days >= 60) return es ? `~${Math.round(days / 30)} meses` : `~${Math.round(days / 30)} months`;
+        return es ? `~${days} días` : `~${days} days`;
+    };
+
+    const title = es ? 'Eventos cripto' : 'Crypto events';
+    el.innerHTML =
+        `<h3 class="crypto-events-title">${escapeHtml(title)}</h3>` +
+        events.map(ev => {
+            const dstr = (() => {
+                try { return new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', timeZone: getEffectiveUserTimezone() }).format(new Date(ev.ms)); }
+                catch (e) { return ''; }
+            })();
+            return `
+                <div class="crypto-event">
+                    <div class="ce-icon"><i class="${ev.icon}" aria-hidden="true"></i></div>
+                    <div class="ce-main">
+                        <div class="ce-name">${escapeHtml(ev.name)}</div>
+                        <div class="ce-note">${escapeHtml(ev.note)}</div>
+                    </div>
+                    <div class="ce-cd">
+                        <b>${escapeHtml(fmtDays(ev.ms))}</b>
+                        <span>≈ ${escapeHtml(dstr)}</span>
+                    </div>
+                </div>`;
+        }).join('');
+}
+
 function renderCryptoCard(nowMs) {
     const container = document.getElementById('crypto-grid');
     if (!container) return;
+    try { renderCryptoEvents(nowMs); } catch (e) { /* ignore */ }
 
     if (!__cryptoInitialRender || container.children.length === 0) {
         container.innerHTML = buildCryptoCardHTML();
@@ -2066,19 +2121,56 @@ async function fetchLiveCalendar(force) {
 function liveLabels() {
     const es = currentLang !== 'en';
     return es
-        ? { week: 'Esta semana', guide: 'Guía de eventos clave', updating: 'Actualizando…', err: 'No se pudo cargar el calendario', empty: 'Sin eventos esta semana — el calendario se renueva cada lunes. Mira la guía de eventos clave abajo.', prev: 'prev', fc: 'est.', act: 'real', risk: 'Ventana de riesgo', done: 'publicado' }
-        : { week: 'This week', guide: 'Key events guide', updating: 'Updating…', err: 'Could not load calendar', empty: 'No events this week — the calendar refreshes every Monday. See the key events guide below.', prev: 'prev', fc: 'est.', act: 'act', risk: 'Risk window', done: 'released' };
+        ? { week: 'Esta semana', guide: 'Guía de eventos clave', updating: 'Actualizando…', err: 'No se pudo cargar el calendario', empty: 'Sin eventos esta semana — el calendario se renueva cada lunes. Mira la guía de eventos clave abajo.', prev: 'prev', fc: 'est.', act: 'real', risk: 'Ventana de riesgo', done: 'publicado', notify: 'Avísame (15 min antes)', notifyOn: 'Recordatorio activado · toca para quitar' }
+        : { week: 'This week', guide: 'Key events guide', updating: 'Updating…', err: 'Could not load calendar', empty: 'No events this week — the calendar refreshes every Monday. See the key events guide below.', prev: 'prev', fc: 'est.', act: 'act', risk: 'Risk window', done: 'released', notify: 'Notify me (15 min before)', notifyOn: 'Reminder on · tap to remove' };
+}
+
+let __newsCurFilter = (function () { try { return localStorage.getItem('news_cur_filter') || 'usd'; } catch (e) { return 'usd'; } })();
+let __newsLiveBound = false;
+
+function bindNewsLive() {
+    if (__newsLiveBound) return;
+    const wrap = document.getElementById('news-live');
+    const filt = document.getElementById('news-live-filter');
+    if (wrap) {
+        wrap.addEventListener('click', (ev) => {
+            const btn = ev.target.closest && ev.target.closest('.lv-bell');
+            if (!btn) return;
+            ev.stopPropagation();
+            toggleEventReminder(btn.getAttribute('data-ev-key'));
+        });
+    }
+    if (filt) {
+        filt.addEventListener('click', (ev) => {
+            const chip = ev.target.closest && ev.target.closest('.nlf-chip');
+            if (!chip) return;
+            __newsCurFilter = chip.getAttribute('data-cf') || 'usd';
+            try { localStorage.setItem('news_cur_filter', __newsCurFilter); } catch (e) {}
+            renderLiveCalendar(Date.now());
+        });
+    }
+    __newsLiveBound = true;
 }
 
 function renderLiveCalendar(nowMs) {
     const wrap = document.getElementById('news-live');
     if (!wrap) return;
+    bindNewsLive();
     const L = liveLabels();
     const titleEl = document.getElementById('news-live-title');
     const guideEl = document.getElementById('news-guide-title');
     const statusEl = document.getElementById('news-live-status');
     if (titleEl) titleEl.textContent = L.week;
     if (guideEl) guideEl.textContent = L.guide;
+
+    // Chips de filtro de divisa
+    const filtEl = document.getElementById('news-live-filter');
+    if (filtEl) {
+        const allLabel = (currentLang !== 'en') ? 'Todas' : 'All';
+        filtEl.innerHTML =
+            `<button class="nlf-chip ${__newsCurFilter === 'usd' ? 'is-on' : ''}" data-cf="usd">USD</button>` +
+            `<button class="nlf-chip ${__newsCurFilter === 'all' ? 'is-on' : ''}" data-cf="all">${escapeHtml(allLabel)}</button>`;
+    }
 
     if (__liveCal.loading && !__liveCal.events.length) {
         wrap.innerHTML = `<div class="news-live-msg">${escapeHtml(L.updating)}</div>`;
@@ -2096,6 +2188,7 @@ function renderLiveCalendar(nowMs) {
         .map(e => ({ ...e, ms: Date.parse(e.date) }))
         .filter(e => Number.isFinite(e.ms))
         .filter(e => e.ms > now - 40 * 60 * 60 * 1000)
+        .filter(e => __newsCurFilter === 'all' ? true : e.currency === 'USD')
         .sort((a, b) => a.ms - b.ms)
         .slice(0, 16);
 
@@ -2119,6 +2212,10 @@ function renderLiveCalendar(nowMs) {
         if (within15) meta = ` · <span class="lv-risk">${escapeHtml(L.risk)}</span>`;
         else if (cd) meta = ` · <b>${escapeHtml(cd)}</b>`;
         else meta = ` · <span class="lv-done">${escapeHtml(L.done)}</span>`;
+        const key = e.currency + '@' + e.date;
+        const on = hasEventReminder(key);
+        const bell = isPast ? '' :
+            `<button class="lv-bell ${on ? 'is-on' : ''}" data-ev-key="${escapeHtml(key)}" aria-label="${escapeHtml(L.notify)}" title="${escapeHtml(on ? L.notifyOn : L.notify)}"><i class="fa-${on ? 'solid' : 'regular'} fa-bell"></i></button>`;
         return `
             <div class="news-live-row ${imp} ${within15 ? 'is-now' : ''} ${isPast ? 'is-past' : ''}">
                 <span class="lv-dot"></span>
@@ -2130,6 +2227,7 @@ function renderLiveCalendar(nowMs) {
                     <div class="lv-when">${escapeHtml(when)}${meta}</div>
                 </div>
                 <div class="lv-vals">${vals.join('')}</div>
+                ${bell}
             </div>`;
     }).join('');
 
@@ -2234,7 +2332,8 @@ const DEFAULT_NOTIF_STATE = {
         openNasdaq: false, openNY: false, openLondon: false,
         openTokyo: false, openSydney: false, goldenHour: false
     },
-    custom: [] // [{ id, time: 'HH:MM', message, days: [0..6], enabled: true }]
+    custom: [], // [{ id, time: 'HH:MM', message, days: [0..6], enabled: true }]
+    eventReminders: [] // [{ key, title, body, fireAt }] recordatorios puntuales de eventos
 };
 
 let notificationState = JSON.parse(JSON.stringify(DEFAULT_NOTIF_STATE));
@@ -2250,7 +2349,8 @@ function loadNotificationState() {
             notificationState = {
                 enabled: !!parsed.enabled,
                 presets: { ...DEFAULT_NOTIF_STATE.presets, ...(parsed.presets || {}) },
-                custom: Array.isArray(parsed.custom) ? parsed.custom : []
+                custom: Array.isArray(parsed.custom) ? parsed.custom : [],
+                eventReminders: Array.isArray(parsed.eventReminders) ? parsed.eventReminders : []
             };
         }
     } catch (e) { /* ignore */ }
@@ -2415,44 +2515,52 @@ function scheduleOneNotif(delay, title, body, onFireExtra) {
     __notifTimers.push(id);
 }
 
+function pruneEventReminders(now) {
+    if (!Array.isArray(notificationState.eventReminders)) { notificationState.eventReminders = []; return; }
+    const before = notificationState.eventReminders.length;
+    // Conserva hasta 1h después de la hora de aviso, luego descarta
+    notificationState.eventReminders = notificationState.eventReminders.filter(r => r && r.fireAt > now - 60 * 60 * 1000);
+    if (notificationState.eventReminders.length !== before) saveNotificationState();
+}
+
 function rescheduleAllNotifications() {
     clearAllNotifTimers();
-    if (!notificationState.enabled || !notifSupported() || notifPermission() !== 'granted') {
+    // Basta con tener permiso: los recordatorios de evento son opt-in explícito
+    // y deben funcionar aunque el interruptor general esté apagado.
+    const granted = notifSupported() && notifPermission() === 'granted';
+    if (!granted) {
         if (__hasNativeNotify()) { try { window.AndroidNotify.setAlarms('[]'); } catch (e) {} }
         updateNotifTriggerVisual();
         return;
     }
 
     const now = Date.now();
+    pruneEventReminders(now);
 
     // App nativa Android: delegamos la programación al sistema (dispara en segundo plano).
     if (__hasNativeNotify()) {
         const alarms = [];
-        Object.keys(notificationState.presets).forEach(presetId => {
-            if (!notificationState.presets[presetId]) return;
-            const evt = findNextPresetEvent(presetId, now);
-            if (!evt || !(evt.fireAt > now)) return;
-            alarms.push({
-                id: 'preset_' + presetId,
-                title: evt.title,
-                body: evt.body || '',
-                fireAt: evt.fireAt,
-                repeat: false
+        if (notificationState.enabled) {
+            Object.keys(notificationState.presets).forEach(presetId => {
+                if (!notificationState.presets[presetId]) return;
+                const evt = findNextPresetEvent(presetId, now);
+                if (!evt || !(evt.fireAt > now)) return;
+                alarms.push({ id: 'preset_' + presetId, title: evt.title, body: evt.body || '', fireAt: evt.fireAt, repeat: false });
             });
-        });
-        notificationState.custom.forEach(alarm => {
-            if (!alarm.enabled) return;
-            const next = nextCustomAlarmTime(alarm, now);
-            if (!next) return;
-            alarms.push({
-                id: 'custom_' + alarm.id,
-                title: alarm.message || '⏰ Alarma',
-                body: '',
-                fireAt: next,
-                repeat: true,
-                time: alarm.time,
-                days: (Array.isArray(alarm.days) && alarm.days.length) ? alarm.days : [0,1,2,3,4,5,6]
+            notificationState.custom.forEach(alarm => {
+                if (!alarm.enabled) return;
+                const next = nextCustomAlarmTime(alarm, now);
+                if (!next) return;
+                alarms.push({
+                    id: 'custom_' + alarm.id, title: alarm.message || '⏰ Alarma', body: '', fireAt: next,
+                    repeat: true, time: alarm.time,
+                    days: (Array.isArray(alarm.days) && alarm.days.length) ? alarm.days : [0, 1, 2, 3, 4, 5, 6]
+                });
             });
+        }
+        // Recordatorios de evento (siempre)
+        (notificationState.eventReminders || []).forEach(r => {
+            if (r.fireAt > now) alarms.push({ id: 'evt_' + r.key, title: r.title, body: r.body || '', fireAt: r.fireAt, repeat: false });
         });
         try { window.AndroidNotify.setAlarms(JSON.stringify(alarms)); }
         catch (e) { console.warn('setAlarms error:', e); }
@@ -2461,34 +2569,74 @@ function rescheduleAllNotifications() {
     }
 
     // Navegador web: temporizadores en memoria (requieren la pestaña abierta).
-    // Presets
-    Object.keys(notificationState.presets).forEach(presetId => {
-        if (!notificationState.presets[presetId]) return;
-        const evt = findNextPresetEvent(presetId, now);
-        if (!evt) return;
-        const delay = evt.fireAt - now;
-        if (delay > 0) scheduleOneNotif(delay, evt.title, evt.body);
-    });
-
-    // Custom alarms
-    notificationState.custom.forEach(alarm => {
-        if (!alarm.enabled) return;
-        const next = nextCustomAlarmTime(alarm, now);
-        if (!next) return;
-        const delay = next - now;
-        if (delay > 0) scheduleOneNotif(delay, alarm.message || '⏰ Alarma', '');
+    if (notificationState.enabled) {
+        Object.keys(notificationState.presets).forEach(presetId => {
+            if (!notificationState.presets[presetId]) return;
+            const evt = findNextPresetEvent(presetId, now);
+            if (!evt) return;
+            const delay = evt.fireAt - now;
+            if (delay > 0) scheduleOneNotif(delay, evt.title, evt.body);
+        });
+        notificationState.custom.forEach(alarm => {
+            if (!alarm.enabled) return;
+            const next = nextCustomAlarmTime(alarm, now);
+            if (!next) return;
+            const delay = next - now;
+            if (delay > 0) scheduleOneNotif(delay, alarm.message || '⏰ Alarma', '');
+        });
+    }
+    (notificationState.eventReminders || []).forEach(r => {
+        const delay = r.fireAt - now;
+        if (delay > 0) scheduleOneNotif(delay, r.title, r.body || '');
     });
 
     updateNotifTriggerVisual();
 }
 
+// --- Recordatorios por evento (botón "avísame" de la agenda en vivo) ---
+function hasEventReminder(key) {
+    return Array.isArray(notificationState.eventReminders) && notificationState.eventReminders.some(r => r.key === key);
+}
+
+async function toggleEventReminder(key) {
+    const ev = (__liveCal.events || []).find(e => (e.currency + '@' + e.date) === key);
+    if (!ev) return;
+    const evMs = Date.parse(ev.date);
+    if (!Number.isFinite(evMs)) return;
+    notificationState.eventReminders = notificationState.eventReminders || [];
+
+    const idx = notificationState.eventReminders.findIndex(r => r.key === key);
+    if (idx >= 0) {
+        notificationState.eventReminders.splice(idx, 1);
+        saveNotificationState();
+        rescheduleAllNotifications();
+        renderLiveCalendar(Date.now());
+        return;
+    }
+
+    const res = await ensureNotificationPermission();
+    if (res !== 'granted') { renderLiveCalendar(Date.now()); return; }
+
+    const es = currentLang !== 'en';
+    const fireAt = Math.max(evMs - 15 * 60 * 1000, Date.now() + 1000);
+    notificationState.eventReminders.push({
+        key,
+        title: '📅 ' + ev.currency + ' · ' + ev.title,
+        body: es ? 'Evento de alto impacto próximo (~15 min)' : 'High-impact event coming up (~15 min)',
+        fireAt
+    });
+    saveNotificationState();
+    rescheduleAllNotifications();
+    renderLiveCalendar(Date.now());
+}
+
 function updateNotifTriggerVisual() {
     const trigger = document.getElementById('notif-trigger');
     if (!trigger) return;
-    const anyActive = notificationState.enabled && (
+    const anyActive = (notificationState.enabled && (
         Object.values(notificationState.presets).some(Boolean) ||
         notificationState.custom.some(a => a.enabled)
-    );
+    )) || (Array.isArray(notificationState.eventReminders) && notificationState.eventReminders.length > 0);
     trigger.classList.toggle('is-active', !!anyActive);
 }
 
