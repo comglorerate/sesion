@@ -56,6 +56,7 @@ const translations = {
             subtitle: 'Noticias económicas que mueven al cripto y al mercado en general',
             impact_max: 'Impacto máximo',
             impact_high: 'Impacto alto',
+            impact_med: 'Impacto medio',
             next: 'Próximo',
             next_approx: 'Próximo (aprox.)',
             why: 'Impacto en el mercado',
@@ -66,6 +67,42 @@ const translations = {
                     long: 'Reunión del Comité de la Reserva Federal (decisión de tasas)',
                     when: '8 veces al año · 14:00 ET (anuncio)',
                     why: 'La Fed decide tasas. BTC y todo el cripto suelen tener movimientos masivos en los minutos posteriores al anuncio. Muchas veces el mayor evento del mes.'
+                },
+                pce: {
+                    name: 'PCE',
+                    long: 'Gasto en consumo personal (inflación preferida de la Fed)',
+                    when: 'Mensual · ~fin de mes · 8:30 AM ET',
+                    why: 'La medida de inflación que MÁS mira la Fed. Sorpresas mueven con fuerza al dólar y, por contagio, al BTC.'
+                },
+                retail: {
+                    name: 'Ventas minoristas',
+                    long: 'Consumo de los hogares en EE. UU. (Retail Sales)',
+                    when: 'Mensual · ~mediados de mes · 8:30 AM ET',
+                    why: 'Mide la fortaleza del consumidor. Dato fuerte → dólar arriba y presión sobre el cripto.'
+                },
+                ppi: {
+                    name: 'PPI',
+                    long: 'Precios al productor (inflación mayorista EE. UU.)',
+                    when: 'Mensual · ~mediados de mes · 8:30 AM ET',
+                    why: 'Adelanta tendencias del CPI. Sorpresas mueven las expectativas de tasas y al BTC.'
+                },
+                ism_svc: {
+                    name: 'ISM Servicios',
+                    long: 'PMI de servicios (la mayor parte de la economía EE. UU.)',
+                    when: 'Mensual · ~3er día hábil · 10:00 ET',
+                    why: 'Aún más relevante que el manufacturero. Sorpresas mueven dólar y cripto.'
+                },
+                ism_mfg: {
+                    name: 'ISM Manufacturero',
+                    long: 'PMI manufacturero (actividad industrial EE. UU.)',
+                    when: 'Mensual · 1er día hábil · 10:00 ET',
+                    why: 'Termómetro de la economía. Bajo 50 = contracción; mueve dólar y apetito de riesgo.'
+                },
+                jobless: {
+                    name: 'Peticiones de desempleo',
+                    long: 'Solicitudes iniciales de subsidio (EE. UU.)',
+                    when: 'Semanal · jueves · 8:30 AM ET',
+                    why: 'Pulso semanal del empleo. El acumulado de sorpresas mueve expectativas de tasas y al dólar.'
                 },
                 cpi: {
                     name: 'CPI',
@@ -220,6 +257,7 @@ const translations = {
             subtitle: 'Economic news that move crypto and the broader market',
             impact_max: 'Maximum impact',
             impact_high: 'High impact',
+            impact_med: 'Medium impact',
             next: 'Next',
             next_approx: 'Next (approx.)',
             why: 'Market impact',
@@ -230,6 +268,42 @@ const translations = {
                     long: 'Federal Open Market Committee meeting (rate decision)',
                     when: '8 times a year · 2:00 PM ET (statement)',
                     why: 'The Fed sets rates. BTC and all crypto usually move massively in the minutes after the announcement. Often the biggest event of the month.'
+                },
+                pce: {
+                    name: 'PCE',
+                    long: 'Personal Consumption Expenditures (the Fed\'s preferred inflation gauge)',
+                    when: 'Monthly · ~end of month · 8:30 AM ET',
+                    why: 'The inflation measure the Fed watches MOST. Surprises move the dollar hard and, by contagion, BTC.'
+                },
+                retail: {
+                    name: 'Retail Sales',
+                    long: 'US household consumption',
+                    when: 'Monthly · ~mid-month · 8:30 AM ET',
+                    why: 'Measures consumer strength. Strong print → dollar up and pressure on crypto.'
+                },
+                ppi: {
+                    name: 'PPI',
+                    long: 'Producer Price Index (US wholesale inflation)',
+                    when: 'Monthly · ~mid-month · 8:30 AM ET',
+                    why: 'Leads CPI trends. Surprises move rate expectations and BTC.'
+                },
+                ism_svc: {
+                    name: 'ISM Services',
+                    long: 'Services PMI (most of the US economy)',
+                    when: 'Monthly · ~3rd business day · 10:00 ET',
+                    why: 'Even more relevant than manufacturing. Surprises move the dollar and crypto.'
+                },
+                ism_mfg: {
+                    name: 'ISM Manufacturing',
+                    long: 'Manufacturing PMI (US industrial activity)',
+                    when: 'Monthly · 1st business day · 10:00 ET',
+                    why: 'Economy thermometer. Below 50 = contraction; moves the dollar and risk appetite.'
+                },
+                jobless: {
+                    name: 'Jobless Claims',
+                    long: 'Initial unemployment claims (US)',
+                    when: 'Weekly · Thursday · 8:30 AM ET',
+                    why: 'Weekly employment pulse. The run of surprises shifts rate expectations and the dollar.'
                 },
                 cpi: {
                     name: 'CPI',
@@ -2051,6 +2125,70 @@ function findNextCME(nowMs) {
     return null;
 }
 
+// --- Helpers de días hábiles (aproximación: ignora feriados) ---
+function isWeekdayYMD(year, month, day) {
+    const dow = new Date(Date.UTC(year, month - 1, day, 12)).getUTCDay();
+    return dow >= 1 && dow <= 5;
+}
+function nthBusinessDayOfMonth(year, month, n) {
+    const last = new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
+    let count = 0;
+    for (let day = 1; day <= last; day++) {
+        if (isWeekdayYMD(year, month, day)) { count++; if (count === n) return day; }
+    }
+    return last;
+}
+function lastBusinessDayOfMonth(year, month) {
+    const last = new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
+    for (let day = last; day >= 1; day--) if (isWeekdayYMD(year, month, day)) return day;
+    return last;
+}
+function businessDayOnOrAfter(year, month, target) {
+    const last = new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
+    for (let day = target; day <= last; day++) if (isWeekdayYMD(year, month, day)) return day;
+    return last;
+}
+
+// Próxima ocurrencia mensual: dayResolver(y,m) decide el día; hora en ET.
+function findNextMonthlyET(nowMs, dayResolver, hour, minute, exact) {
+    const p = TzUtils.getZonedParts(nowMs, 'America/New_York');
+    let y = p.year, m = p.month;
+    for (let i = 0; i < 13; i++) {
+        const day = dayResolver(y, m);
+        if (day) {
+            const inst = instantInET(y, m, day, hour, minute);
+            if (inst.getTime() > nowMs) return { date: inst, exact };
+        }
+        m++; if (m > 12) { m = 1; y++; }
+    }
+    return null;
+}
+
+// Core PCE: ~último día hábil del mes · 8:30 ET (aprox · inflación preferida de la Fed)
+function findNextPCE(nowMs)    { return findNextMonthlyET(nowMs, (y, m) => lastBusinessDayOfMonth(y, m), 8, 30, false); }
+// Ventas minoristas: ~mediados de mes (día hábil desde el 16) · 8:30 ET (aprox)
+function findNextRetail(nowMs) { return findNextMonthlyET(nowMs, (y, m) => businessDayOnOrAfter(y, m, 16), 8, 30, false); }
+// PPI: ~mediados de mes (día hábil desde el 13) · 8:30 ET (aprox)
+function findNextPPI(nowMs)    { return findNextMonthlyET(nowMs, (y, m) => businessDayOnOrAfter(y, m, 13), 8, 30, false); }
+// ISM Manufacturero: 1er día hábil del mes · 10:00 ET
+function findNextISMmfg(nowMs) { return findNextMonthlyET(nowMs, (y, m) => nthBusinessDayOfMonth(y, m, 1), 10, 0, false); }
+// ISM Servicios: ~3er día hábil del mes · 10:00 ET
+function findNextISMsvc(nowMs) { return findNextMonthlyET(nowMs, (y, m) => nthBusinessDayOfMonth(y, m, 3), 10, 0, false); }
+// Peticiones de desempleo: cada jueves · 8:30 ET
+function findNextJobless(nowMs) {
+    const p = TzUtils.getZonedParts(nowMs, 'America/New_York');
+    let ymd = { year: p.year, month: p.month, day: p.day };
+    for (let i = 0; i < 10; i++) {
+        const dow = new Date(Date.UTC(ymd.year, ymd.month - 1, ymd.day, 12)).getUTCDay();
+        if (dow === 4) {
+            const inst = instantInET(ymd.year, ymd.month, ymd.day, 8, 30);
+            if (inst.getTime() > nowMs) return { date: inst, exact: true };
+        }
+        ymd = TzUtils.addDaysYMD(ymd, 1);
+    }
+    return null;
+}
+
 // Formatea una fecha (instante UTC) en hora local del usuario
 function formatNewsDate(date) {
     const tz = getEffectiveUserTimezone();
@@ -2074,10 +2212,16 @@ function diffToFutureCountdown(nowMs, targetDate) {
 }
 
 const NEWS_EVENTS = [
-    { id: 'fomc', icon: 'fa-gavel',         impactKey: 'news.impact_max',  finder: findNextFOMC, exact: true,  badgeClass: 'impact-max' },
-    { id: 'cpi',  icon: 'fa-chart-line',    impactKey: 'news.impact_max',  finder: findNextCPI,  exact: false, badgeClass: 'impact-max' },
-    { id: 'nfp',  icon: 'fa-briefcase',     impactKey: 'news.impact_high', finder: findNextNFP,  exact: true,  badgeClass: 'impact-high' },
-    { id: 'cme',  icon: 'fa-calendar-check',impactKey: 'news.impact_high', finder: findNextCME,  exact: true,  badgeClass: 'impact-high' }
+    { id: 'fomc',    icon: 'fa-gavel',          impactKey: 'news.impact_max',  finder: findNextFOMC,   exact: true,  badgeClass: 'impact-max' },
+    { id: 'cpi',     icon: 'fa-chart-line',     impactKey: 'news.impact_max',  finder: findNextCPI,    exact: false, badgeClass: 'impact-max' },
+    { id: 'pce',     icon: 'fa-fire',           impactKey: 'news.impact_max',  finder: findNextPCE,    exact: false, badgeClass: 'impact-max' },
+    { id: 'nfp',     icon: 'fa-briefcase',      impactKey: 'news.impact_high', finder: findNextNFP,    exact: true,  badgeClass: 'impact-high' },
+    { id: 'retail',  icon: 'fa-cart-shopping',  impactKey: 'news.impact_high', finder: findNextRetail, exact: false, badgeClass: 'impact-high' },
+    { id: 'ppi',     icon: 'fa-industry',       impactKey: 'news.impact_high', finder: findNextPPI,    exact: false, badgeClass: 'impact-high' },
+    { id: 'ism_svc', icon: 'fa-bell-concierge', impactKey: 'news.impact_high', finder: findNextISMsvc, exact: false, badgeClass: 'impact-high' },
+    { id: 'ism_mfg', icon: 'fa-gears',          impactKey: 'news.impact_high', finder: findNextISMmfg, exact: false, badgeClass: 'impact-high' },
+    { id: 'jobless', icon: 'fa-user-clock',     impactKey: 'news.impact_med',  finder: findNextJobless,exact: true,  badgeClass: 'impact-med' },
+    { id: 'cme',     icon: 'fa-calendar-check', impactKey: 'news.impact_high', finder: findNextCME,    exact: true,  badgeClass: 'impact-high' }
 ];
 
 let __newsInitialRender = false;
