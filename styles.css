@@ -1463,6 +1463,9 @@ section { margin-bottom: var(--space-8); }
 .lv-when { color: var(--text-muted); font-size: 0.78rem; margin-top: 3px; }
 .lv-when b { color: var(--accent); font-weight: 700; }
 .lv-risk { color: var(--accent-danger); font-weight: 700; }
+.lv-done { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.04em; }
+.news-live-row.is-past { opacity: 0.72; }
+.news-live-row.is-past:hover { opacity: 1; }
 .lv-vals {
     display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
     font-size: 0.74rem; color: var(--text-muted); flex: none;
