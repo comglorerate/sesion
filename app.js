@@ -2026,6 +2026,115 @@ const NEWS_EVENTS = [
 ];
 
 let __newsInitialRender = false;
+// ============================================================
+// Calendario económico EN VIVO (Netlify Function -> ForexFactory)
+// ============================================================
+let __liveCal = { events: [], fetchedAt: 0, loading: false, error: false };
+const LIVE_CAL_TTL = 10 * 60 * 1000;
+
+function liveCalUrl() {
+    try {
+        // En la app Android el origen es appassets.androidplatform.net:
+        // hay que llamar a la función por su URL absoluta de Netlify.
+        if (location.hostname.endsWith('androidplatform.net')) {
+            return 'https://horario-sesion.netlify.app/.netlify/functions/calendar';
+        }
+    } catch (e) { /* ignore */ }
+    return '/.netlify/functions/calendar';
+}
+
+async function fetchLiveCalendar(force) {
+    const now = Date.now();
+    if (!force && __liveCal.events.length && (now - __liveCal.fetchedAt) < LIVE_CAL_TTL) return;
+    if (__liveCal.loading) return;
+    __liveCal.loading = true;
+    try {
+        const res = await fetch(liveCalUrl(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('http ' + res.status);
+        const data = await res.json();
+        __liveCal.events = Array.isArray(data.events) ? data.events : [];
+        __liveCal.fetchedAt = now;
+        __liveCal.error = false;
+    } catch (e) {
+        __liveCal.error = true;
+    } finally {
+        __liveCal.loading = false;
+        try { renderLiveCalendar(Date.now()); } catch (e) { /* ignore */ }
+    }
+}
+
+function liveLabels() {
+    const es = currentLang !== 'en';
+    return es
+        ? { week: 'Esta semana', guide: 'Guía de eventos clave', updating: 'Actualizando…', err: 'No se pudo cargar el calendario', empty: 'Sin eventos de alto impacto próximos', prev: 'prev', fc: 'est.', act: 'real', risk: 'Ventana de riesgo' }
+        : { week: 'This week', guide: 'Key events guide', updating: 'Updating…', err: 'Could not load calendar', empty: 'No upcoming high-impact events', prev: 'prev', fc: 'est.', act: 'act', risk: 'Risk window' };
+}
+
+function renderLiveCalendar(nowMs) {
+    const wrap = document.getElementById('news-live');
+    if (!wrap) return;
+    const L = liveLabels();
+    const titleEl = document.getElementById('news-live-title');
+    const guideEl = document.getElementById('news-guide-title');
+    const statusEl = document.getElementById('news-live-status');
+    if (titleEl) titleEl.textContent = L.week;
+    if (guideEl) guideEl.textContent = L.guide;
+
+    if (__liveCal.loading && !__liveCal.events.length) {
+        wrap.innerHTML = `<div class="news-live-msg">${escapeHtml(L.updating)}</div>`;
+        return;
+    }
+    if (__liveCal.error && !__liveCal.events.length) {
+        wrap.innerHTML = `<div class="news-live-msg">${escapeHtml(L.err)}</div>`;
+        return;
+    }
+
+    const now = nowMs ?? Date.now();
+    const items = __liveCal.events
+        .map(e => ({ ...e, ms: Date.parse(e.date) }))
+        .filter(e => Number.isFinite(e.ms))
+        .filter(e => e.ms > now - 2 * 60 * 60 * 1000)  // incluye lo recién publicado (con 'actual')
+        .sort((a, b) => a.ms - b.ms)
+        .slice(0, 14);
+
+    if (!items.length) {
+        wrap.innerHTML = `<div class="news-live-msg">${escapeHtml(L.empty)}</div>`;
+        return;
+    }
+
+    wrap.innerHTML = items.map(e => {
+        const d = new Date(e.ms);
+        const when = formatNewsDate(d);
+        const cd = diffToFutureCountdown(now, d);
+        const within15 = Math.abs(e.ms - now) <= 15 * 60 * 1000;
+        const imp = e.impact === 'High' ? 'live-high' : 'live-med';
+        const vals = [];
+        if (e.actual) vals.push(`<span class="lv-act">${escapeHtml(L.act)}: <b>${escapeHtml(e.actual)}</b></span>`);
+        if (e.forecast) vals.push(`<span class="lv-fc">${escapeHtml(L.fc)}: ${escapeHtml(e.forecast)}</span>`);
+        if (e.previous) vals.push(`<span class="lv-prev">${escapeHtml(L.prev)}: ${escapeHtml(e.previous)}</span>`);
+        return `
+            <div class="news-live-row ${imp} ${within15 ? 'is-now' : ''}">
+                <span class="lv-dot"></span>
+                <div class="lv-main">
+                    <div class="lv-top">
+                        <span class="lv-cur">${escapeHtml(e.currency)}</span>
+                        <span class="lv-title">${escapeHtml(e.title)}</span>
+                    </div>
+                    <div class="lv-when">${escapeHtml(when)}${cd ? ` · <b>${escapeHtml(cd)}</b>` : ''}${within15 ? ` · <span class="lv-risk">${escapeHtml(L.risk)}</span>` : ''}</div>
+                </div>
+                <div class="lv-vals">${vals.join('')}</div>
+            </div>`;
+    }).join('');
+
+    if (statusEl) {
+        let upd = '';
+        if (__liveCal.fetchedAt) {
+            try { upd = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(__liveCal.fetchedAt)); } catch (e) {}
+        }
+        statusEl.textContent = upd ? `· ${upd}` : '';
+    }
+}
+
 function renderNewsSection(nowMs) {
     const grid = document.getElementById('news-grid');
     if (!grid) return;
@@ -2103,6 +2212,9 @@ function renderNewsSection(nowMs) {
     // El disclaimer se mantiene siempre al final con un order alto
     const disclaimerEl = grid.querySelector('.news-disclaimer');
     if (disclaimerEl) disclaimerEl.style.order = 999;
+
+    // Agenda en vivo (API): carga si toca y refresca countdowns en cada tick
+    try { fetchLiveCalendar(false); renderLiveCalendar(nowMs); } catch (e) { /* ignore */ }
 }
 
 // ============================================================
