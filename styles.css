@@ -1466,6 +1466,53 @@ section { margin-bottom: var(--space-8); }
 .lv-done { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.04em; }
 .news-live-row.is-past { opacity: 0.72; }
 .news-live-row.is-past:hover { opacity: 1; }
+
+/* Botón "avísame" por evento */
+.lv-bell {
+    flex: none;
+    width: 34px; height: 34px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.lv-bell:hover { color: var(--text); border-color: var(--accent); }
+.lv-bell.is-on { color: #04201d; background: var(--accent); border-color: var(--accent); }
+
+/* Chips de filtro de divisa */
+.news-live-filter { display: inline-flex; gap: 6px; margin-left: auto; }
+.nlf-chip {
+    appearance: none; border: 1px solid var(--border); background: var(--card);
+    color: var(--text-muted); font-family: inherit; font-weight: 700; font-size: 0.74rem;
+    padding: 4px 10px; border-radius: 999px; cursor: pointer;
+}
+.nlf-chip.is-on { background: rgba(45,212,191,0.14); border-color: rgba(45,212,191,0.45); color: var(--text); }
+
+/* Eventos cripto (halving, etc.) */
+.crypto-events { margin-top: var(--space-4); }
+.crypto-events-title { font-size: 1rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: var(--space-3); }
+.crypto-event {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 60%), var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid #f7931a; /* naranja Bitcoin */
+    border-radius: var(--radius-lg);
+}
+.crypto-event .ce-icon {
+    width: 42px; height: 42px; border-radius: 12px; flex: none;
+    display: grid; place-items: center;
+    background: rgba(247, 147, 26, 0.12); color: #f7931a; font-size: 1.2rem;
+}
+.crypto-event .ce-main { flex: 1; min-width: 0; }
+.crypto-event .ce-name { font-weight: 700; color: var(--text); }
+.crypto-event .ce-note { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
+.crypto-event .ce-cd { text-align: right; flex: none; }
+.crypto-event .ce-cd b { display: block; color: var(--accent); font-size: 1rem; }
+.crypto-event .ce-cd span { color: var(--text-muted); font-size: 0.74rem; }
 .lv-vals {
     display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
     font-size: 0.74rem; color: var(--text-muted); flex: none;
