@@ -776,6 +776,62 @@ section { margin-bottom: var(--space-8); }
     margin-top: 6px;
 }
 
+/* --- Killzones (ICT) --- */
+.killzones { margin-top: var(--space-4); display: flex; flex-direction: column; gap: 8px; }
+.kz-title { font-size: 1rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 2px; }
+.kz-title .kz-sub { color: var(--text-muted); font-weight: 600; font-size: 0.78rem; }
+.kz-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: var(--radius-md);
+}
+.kz-row .kz-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--text-muted); }
+.kz-main { flex: 1; min-width: 0; }
+.kz-name { font-weight: 700; color: var(--text); }
+.kz-win { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.kz-sb {
+    margin-top: 5px;
+    font-size: 0.74rem;
+    color: var(--text-soft);
+    font-variant-numeric: tabular-nums;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 8px; border-radius: 999px;
+    background: rgba(148, 163, 184, 0.10);
+    border: 1px solid var(--border);
+}
+.kz-sb.is-active {
+    color: #04201d; background: var(--accent); border-color: var(--accent); font-weight: 700;
+}
+.kz-sb.is-active b { color: #04201d; }
+.kz-status { text-align: right; flex: none; color: var(--text-muted); font-size: 0.82rem; }
+.kz-status b { color: var(--accent); }
+.kz-row.is-active {
+    border-color: rgba(45, 212, 191, 0.55);
+    border-left-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.30);
+    background: rgba(45, 212, 191, 0.06);
+}
+.kz-row.is-active .kz-dot { background: var(--accent); box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18); }
+.kz-live {
+    color: #04201d; background: var(--accent);
+    font-weight: 800; font-size: 0.7rem; letter-spacing: 0.04em;
+    padding: 2px 8px; border-radius: 999px;
+}
+.kz-row.is-dim { opacity: 0.55; }
+.kz-row.is-dim:hover { opacity: 1; }
+.kz-banner {
+    padding: 10px 14px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.02);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
 /* --- Pestañas de secciones --- */
 .market-tabs {
     display: flex;

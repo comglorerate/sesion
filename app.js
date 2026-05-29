@@ -1201,6 +1201,9 @@ function renderMarkets(opts = {}) {
     // Timeline de overlaps de Forex
     try { renderForexTimeline(now); } catch (e) { console.warn('timeline error', e); }
 
+    // Killzones (ICT)
+    try { renderKillzones(now); } catch (e) { console.warn('killzones error', e); }
+
     // Card de Cripto (24/7 con medidor de liquidez)
     try { renderCryptoCard(now); } catch (e) { console.warn('crypto error', e); }
 
@@ -1485,6 +1488,122 @@ const FOREX_COLORS = {
 let __timelineState = {
     lanes: [], W: 600, H: 140, padX: 56, padY: 18, innerW: 0
 };
+
+// ============================================================
+// Killzones (ICT) — franjas de alta probabilidad, definidas en hora ET
+// ============================================================
+// days = días ET válidos (0=Dom .. 6=Sáb). El forex opera dom 17:00 → vie 17:00 ET.
+// Asia (20:00 ET) arranca la semana el domingo, así que vale Dom–Jue.
+// sb = Silver Bullet (ventana ICT de 1h dentro de la killzone), en hora ET.
+const KILLZONES = [
+    { id: 'asia',         startH: 20, startM: 0, endH: 22, endM: 0, days: [0, 1, 2, 3, 4] },
+    { id: 'london',       startH: 2,  startM: 0, endH: 5,  endM: 0, days: [1, 2, 3, 4, 5], sb: { startH: 3,  endH: 4 } },
+    { id: 'ny',           startH: 7,  startM: 0, endH: 11, endM: 0, days: [1, 2, 3, 4, 5], sb: { startH: 10, endH: 11 } },
+    { id: 'london_close', startH: 10, startM: 0, endH: 12, endM: 0, days: [1, 2, 3, 4, 5] }
+];
+
+// ¿El mercado forex está cerrado ahora? (fin de semana, hora ET)
+function isForexClosedNow(etParts) {
+    const wd = new Date(Date.UTC(etParts.year, etParts.month - 1, etParts.day, 12)).getUTCDay();
+    const h = etParts.hour;
+    if (wd === 6) return true;                 // sábado
+    if (wd === 0 && h < 17) return true;       // domingo antes de la reapertura
+    if (wd === 5 && h >= 17) return true;      // viernes tras el cierre
+    return false;
+}
+
+function renderKillzones(nowMs) {
+    const el = document.getElementById('killzones');
+    if (!el) return;
+    const now = nowMs ?? Date.now();
+    const es = currentLang !== 'en';
+    const names = es
+        ? { asia: 'Asia', london: 'Londres (apertura)', ny: 'Nueva York (AM)', london_close: 'Cierre de Londres' }
+        : { asia: 'Asia', london: 'London (open)', ny: 'New York (AM)', london_close: 'London close' };
+    const tz = getEffectiveUserTimezone();
+    const fmtT = (inst) => {
+        try { return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz }).format(inst); }
+        catch (e) { return '--:--'; }
+    };
+
+    const p = TzUtils.getZonedParts(now, 'America/New_York');
+    const wdOf = (y, m, d) => new Date(Date.UTC(y, m - 1, d, 12)).getUTCDay();
+
+    const rows = KILLZONES.map(kz => {
+        const todayWd = wdOf(p.year, p.month, p.day);
+        const startToday = instantInET(p.year, p.month, p.day, kz.startH, kz.startM);
+        const endToday = instantInET(p.year, p.month, p.day, kz.endH, kz.endM);
+        const validToday = kz.days.includes(todayWd);
+        const active = validToday && now >= startToday.getTime() && now < endToday.getTime();
+
+        // Próximo inicio en un día válido (busca hasta 8 días)
+        let nextStart = null;
+        let ymd = { year: p.year, month: p.month, day: p.day };
+        for (let i = 0; i < 8; i++) {
+            if (kz.days.includes(wdOf(ymd.year, ymd.month, ymd.day))) {
+                const st = instantInET(ymd.year, ymd.month, ymd.day, kz.startH, kz.startM);
+                if (st.getTime() > now) { nextStart = st; break; }
+            }
+            ymd = TzUtils.addDaysYMD(ymd, 1);
+        }
+
+        // Silver Bullet (sub-ventana de 1h dentro de la killzone)
+        let sb = null;
+        if (kz.sb) {
+            const sbStart = instantInET(p.year, p.month, p.day, kz.sb.startH, kz.sb.startM || 0);
+            const sbEnd = instantInET(p.year, p.month, p.day, kz.sb.endH, kz.sb.endM || 0);
+            const sbActive = validToday && now >= sbStart.getTime() && now < sbEnd.getTime();
+            sb = { sbStart, sbEnd, sbActive };
+        }
+
+        return { kz, startToday, endToday, active, nextStart, sb };
+    });
+    rows.sort((a, b) => {
+        if (a.active && !b.active) return -1;
+        if (b.active && !a.active) return 1;
+        const an = a.nextStart ? a.nextStart.getTime() : Infinity;
+        const bn = b.nextStart ? b.nextStart.getTime() : Infinity;
+        return an - bn;
+    });
+
+    const closed = isForexClosedNow(p);
+    const head = `<h3 class="kz-title">Killzones</h3>`;
+    const banner = closed
+        ? `<div class="kz-banner">${es ? '🔒 Mercado cerrado (fin de semana). Las killzones se reanudan el domingo 17:00 ET.' : '🔒 Market closed (weekend). Killzones resume Sunday 5:00 PM ET.'}</div>`
+        : '';
+
+    el.innerHTML = head + banner + rows.map(r => {
+        // Ventana mostrada: la del próximo inicio (o la de hoy si está activa)
+        const refStart = r.active ? r.startToday : (r.nextStart || r.startToday);
+        const winEnd = new Date(refStart.getTime() + (r.endToday.getTime() - r.startToday.getTime()));
+        const win = `${fmtT(refStart)}–${fmtT(winEnd)}`;
+        let status;
+        if (r.active) {
+            const cd = diffToFutureCountdown(now, r.endToday);
+            status = `<span class="kz-live">${es ? 'ACTIVA' : 'LIVE'}</span>${cd ? ` · ${es ? 'cierra en' : 'ends in'} ${escapeHtml(cd)}` : ''}`;
+        } else if (r.nextStart) {
+            const cd = diffToFutureCountdown(now, r.nextStart);
+            status = `${es ? 'en' : 'in'} <b>${escapeHtml(cd || '--')}</b>`;
+        } else {
+            status = '—';
+        }
+        let sbLine = '';
+        if (r.sb) {
+            const sbWin = `${fmtT(r.sb.sbStart)}–${fmtT(r.sb.sbEnd)}`;
+            sbLine = `<div class="kz-sb ${r.sb.sbActive ? 'is-active' : ''}">🎯 Silver Bullet ${escapeHtml(sbWin)}${r.sb.sbActive ? ` · <b>${es ? 'ACTIVA' : 'LIVE'}</b>` : ''}</div>`;
+        }
+        return `
+            <div class="kz-row ${r.active ? 'is-active' : ''} ${closed && !r.active ? 'is-dim' : ''}">
+                <span class="kz-dot"></span>
+                <div class="kz-main">
+                    <div class="kz-name">${escapeHtml(names[r.kz.id] || r.kz.id)}</div>
+                    <div class="kz-win">${escapeHtml(win)}</div>
+                    ${sbLine}
+                </div>
+                <div class="kz-status">${status}</div>
+            </div>`;
+    }).join('');
+}
 
 function renderForexTimeline(nowMs) {
     const container = document.getElementById('forex-timeline');
