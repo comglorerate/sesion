@@ -32,28 +32,6 @@
             <span data-i18n="title">Horarios de Mercados Financieros</span>
         </h1>
 
-        <nav class="top-nav" role="navigation" aria-label="Navegación principal">
-            <a class="nav-button" href="https://trading-calculadora.netlify.app/"
-               target="_blank" rel="noopener noreferrer"
-               data-i18n-title="nav.calculator_open"
-               data-i18n-aria-label="nav.calculator_open">
-                <i class="fa-solid fa-calculator" aria-hidden="true"></i>
-                <span data-i18n="nav.calculator">Calculadora</span>
-            </a>
-            <a class="nav-button" href="https://trading-jornada.netlify.app/"
-               target="_blank" rel="noopener noreferrer"
-               data-i18n-title="nav.journal_open"
-               data-i18n-aria-label="nav.journal_open">
-                <i class="fa-solid fa-book" aria-hidden="true"></i>
-                <span data-i18n="nav.journal">Journal</span>
-            </a>
-            <a class="nav-button" href="#news-section"
-               data-i18n-title="nav.news_open"
-               data-i18n-aria-label="nav.news_open">
-                <i class="fa-solid fa-newspaper" aria-hidden="true"></i>
-                <span data-i18n="nav.news">Noticias</span>
-            </a>
-        </nav>
 
         <div class="user-info">
             <button type="button" id="user-timezone" class="user-info-btn" data-i18n-aria-label="tz_picker.open" aria-haspopup="dialog">
@@ -113,7 +91,7 @@
                     <label class="notif-master-label">
                         <input type="checkbox" id="notif-master-toggle" />
                         <span class="notif-switch"></span>
-                        <span data-i18n="notifs.master">Activar notificaciones del navegador</span>
+                        <span data-i18n="notifs.master">Activar notificaciones</span>
                     </label>
                     <p id="notif-permission-status" class="notif-permission-status"></p>
                 </div>
@@ -183,19 +161,25 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="notif-disclaimer">
-                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    <span data-i18n="notifs.disclaimer">Las notificaciones requieren tener la pestaña abierta. Si cierras el navegador, vuelve a abrirla y se reprogramarán automáticamente.</span>
-                </div>
             </div>
         </div>
     </div>
 
     <main class="container">
 
+        <!-- 0) RESUMEN DE MERCADOS (de un vistazo) -->
+        <div id="market-summary" class="market-summary" aria-label="Estado actual de los mercados"></div>
+
+        <!-- TABS -->
+        <div class="market-tabs" id="market-tabs" role="tablist" aria-label="Secciones">
+            <button type="button" class="market-tab is-active" role="tab" data-tab-btn="cripto">Cripto</button>
+            <button type="button" class="market-tab" role="tab" data-tab-btn="forex">Forex</button>
+            <button type="button" class="market-tab" role="tab" data-tab-btn="acciones">Acciones</button>
+            <button type="button" class="market-tab" role="tab" data-tab-btn="noticias">Noticias</button>
+        </div>
+
         <!-- 1) CRYPTO -->
-        <section aria-labelledby="crypto-heading">
+        <section data-tab="cripto" aria-labelledby="crypto-heading">
             <div class="section-header">
                 <h2 id="crypto-heading"><span data-i18n="crypto.title">Cripto</span></h2>
                 <p>(<span data-i18n="crypto.subtitle">Mercado 24/7</span>)</p>
@@ -204,7 +188,7 @@
         </section>
 
         <!-- 2) SOLAPAMIENTO DE SESIONES (timeline) — sección propia -->
-        <section aria-labelledby="timeline-heading">
+        <section data-tab="forex" aria-labelledby="timeline-heading">
             <div class="section-header">
                 <h2 id="timeline-heading"><span data-i18n="timeline.title">Solapamiento de sesiones (Forex)</span></h2>
             </div>
@@ -222,7 +206,7 @@
         </section>
 
         <!-- 3) STOCKS -->
-        <section aria-labelledby="stocks-heading">
+        <section data-tab="acciones" aria-labelledby="stocks-heading">
             <div class="section-header">
                 <h2 id="stocks-heading"><span data-i18n="stocks.title">Bolsa de Valores de EE. UU</span></h2>
                 <p>(<span data-i18n="stocks.subtitle">Mercado de Acciones</span>)</p>
@@ -231,7 +215,7 @@
         </section>
 
         <!-- 4) FOREX -->
-        <section aria-labelledby="forex-heading">
+        <section data-tab="forex" aria-labelledby="forex-heading">
             <div class="section-header">
                 <h2 id="forex-heading"><span data-i18n="forex.title">Sesión de Forex</span></h2>
                 <p>(<span data-i18n="forex.subtitle">Mercado de Divisas</span>)</p>
@@ -240,7 +224,7 @@
         </section>
 
         <!-- 5) NOTICIAS / EVENTOS MACRO -->
-        <section id="news-section" aria-labelledby="news-heading">
+        <section id="news-section" data-tab="noticias" aria-labelledby="news-heading">
             <div class="section-header">
                 <h2 id="news-heading"><span data-i18n="news.title">Eventos macro</span></h2>
                 <p data-i18n="news.subtitle">Noticias económicas que mueven al cripto y al mercado en general</p>
