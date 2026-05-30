@@ -1828,14 +1828,20 @@ function setupTimelineScrub() {
     wrap.addEventListener('mousemove', (e) => updateAtClientX(e.clientX));
     wrap.addEventListener('mouseleave', hide);
 
-    // Touch (móvil): permite "arrastrar" el dedo a lo largo del timeline
+    // Touch (móvil): arrastrar el dedo a lo largo del timeline.
+    // Bloqueamos el scroll vertical de la página mientras se manipula la línea
+    // (preventDefault + touch-action:none vía CSS) para que no salte la pantalla.
     wrap.addEventListener('touchstart', (e) => {
         if (e.touches[0]) updateAtClientX(e.touches[0].clientX);
     }, { passive: true });
     wrap.addEventListener('touchmove', (e) => {
-        if (e.touches[0]) updateAtClientX(e.touches[0].clientX);
-    }, { passive: true });
+        if (e.touches[0]) {
+            e.preventDefault();           // congela el desplazamiento vertical
+            updateAtClientX(e.touches[0].clientX);
+        }
+    }, { passive: false });
     wrap.addEventListener('touchend', hide);
+    wrap.addEventListener('touchcancel', hide);
 
     // Soporte teclado: flechas izquierda/derecha mueven el ghost en pasos de 15 min
     let kbMins = null;
