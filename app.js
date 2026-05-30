@@ -1729,15 +1729,45 @@ function renderForexTimeline(nowMs) {
     const userNowMins = (userNowMs - userMidnight.getTime()) / 60000;
     if (userNowMins >= 0 && userNowMins <= 1440) {
         const x = xAt(userNowMins);
-        html += `<line x1="${x}" y1="${padY - 6}" x2="${x}" y2="${H - padY - 14}" stroke="white" stroke-width="2" stroke-dasharray="3 3" />`;
-        html += `<circle cx="${x}" cy="${padY - 6}" r="3.5" fill="white"/>`;
+        html += `<line class="tl-now" x1="${x}" y1="${padY - 6}" x2="${x}" y2="${H - padY - 14}" stroke="white" stroke-width="2" stroke-dasharray="3 3" />`;
+        html += `<circle class="tl-now" cx="${x}" cy="${padY - 6}" r="3.5" fill="white"/>`;
     }
 
     html += '</svg>';
     svgHost.innerHTML = html;
 
+    // Reloj "ahora" (chip HTML) + manija (knob) sobre la línea blanca punteada
+    const nowLabel = document.getElementById('timeline-now-label');
+    const nowKnob = document.getElementById('timeline-now-knob');
+    const inRange = userNowMins >= 0 && userNowMins <= 1440;
+    const leftPct = inRange ? ((xAt(userNowMins) / W) * 100) + '%' : null;
+    if (nowLabel) {
+        if (inRange) {
+            let hh = 0, mm = 0;
+            try { const pn = TzUtils.getZonedParts(userNowMs, userTz); hh = pn.hour; mm = pn.minute; }
+            catch (e) { const dn = new Date(userNowMs); hh = dn.getHours(); mm = dn.getMinutes(); }
+            nowLabel.style.left = leftPct;
+            nowLabel.innerHTML = `<i class="fa-regular fa-clock" aria-hidden="true"></i> ${pad2(hh)}:${pad2(mm)}`;
+            nowLabel.classList.add('is-visible');
+            nowLabel.setAttribute('aria-hidden', 'false');
+        } else {
+            nowLabel.classList.remove('is-visible');
+            nowLabel.setAttribute('aria-hidden', 'true');
+        }
+    }
+    if (nowKnob) {
+        if (inRange) {
+            nowKnob.style.left = leftPct;
+            nowKnob.classList.add('is-visible');
+            nowKnob.setAttribute('aria-hidden', 'false');
+        } else {
+            nowKnob.classList.remove('is-visible');
+            nowKnob.setAttribute('aria-hidden', 'true');
+        }
+    }
+
     // Guardar estado para que el handler de scrub use las mismas dimensiones/lanes
-    __timelineState = { lanes, W, H, padX, padY, innerW };
+    __timelineState = { lanes, W, H, padX, padY, innerW, nowMins: (userNowMins >= 0 && userNowMins <= 1440) ? userNowMins : null };
 
     // Legend
     if (legendEl) {
@@ -1782,9 +1812,9 @@ function setupTimelineScrub() {
             return;
         }
 
-        // Minutos desde medianoche del usuario, snap a 5 min
+        // Minutos desde medianoche del usuario (snap a 1 min para un seguimiento fluido)
         const rawMins = ((vbX - state.padX) / state.innerW) * 1440;
-        const mins = Math.max(0, Math.min(1440, Math.round(rawMins / 5) * 5));
+        const mins = Math.max(0, Math.min(1440, Math.round(rawMins)));
 
         const h = Math.floor(mins / 60) % 24;
         const m = mins % 60;
@@ -1815,6 +1845,9 @@ function setupTimelineScrub() {
         tooltip.classList.add('is-active');
         tooltip.setAttribute('aria-hidden', 'false');
         ghost.setAttribute('aria-hidden', 'false');
+        // Mientras se arrastra, la línea "ahora" (blanca + reloj) se oculta:
+        // solo se ve la verde. Al soltar vuelve a aparecer.
+        wrap.classList.add('is-scrubbing');
     };
 
     const hide = () => {
@@ -1822,26 +1855,100 @@ function setupTimelineScrub() {
         tooltip.classList.remove('is-active');
         tooltip.setAttribute('aria-hidden', 'true');
         ghost.setAttribute('aria-hidden', 'true');
+        wrap.classList.remove('is-scrubbing');
     };
 
-    // Mouse
-    wrap.addEventListener('mousemove', (e) => updateAtClientX(e.clientX));
-    wrap.addEventListener('mouseleave', hide);
+    // Efecto de pulso (ripple) al aterrizar en "ahora"
+    const pulseNow = (xCss) => {
+        const pulse = document.getElementById('timeline-now-pulse');
+        if (!pulse) return;
+        pulse.style.left = xCss + 'px';
+        pulse.classList.remove('animate');
+        void pulse.offsetWidth; // reflow para reiniciar la animación
+        pulse.classList.add('animate');
+    };
 
-    // Touch (móvil): arrastrar el dedo a lo largo del timeline.
-    // Bloqueamos el scroll vertical de la página mientras se manipula la línea
-    // (preventDefault + touch-action:none vía CSS) para que no salte la pantalla.
+    // Al soltar: la línea verde regresa con suavidad a "ahora", luego vuelve a ser blanca + pulso
+    const snapBack = () => {
+        const nx = nowXCss();
+        if (nx == null || !ghost.classList.contains('is-active')) { hide(); return; }
+        tooltip.classList.remove('is-active');
+        tooltip.setAttribute('aria-hidden', 'true');
+        ghost.style.transition = 'left 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease';
+        ghost.style.left = nx + 'px';
+        let done = false;
+        const finish = () => {
+            if (done) return; done = true;
+            ghost.removeEventListener('transitionend', finish);
+            ghost.style.transition = '';   // restaura el seguimiento rápido
+            hide();                          // vuelve la línea blanca "ahora"
+            pulseNow(nx);                    // efecto al aterrizar
+        };
+        ghost.addEventListener('transitionend', finish);
+        setTimeout(finish, 420);
+    };
+
+    // Posición en CSS px de la línea "ahora" (blanca), o null si no está en rango.
+    const nowXCss = () => {
+        const state = __timelineState;
+        if (!state || state.nowMins == null) return null;
+        const rect = wrap.getBoundingClientRect();
+        if (!rect.width) return null;
+        const scale = state.W / rect.width;
+        return (state.padX + (state.nowMins / 1440) * state.innerW) / scale;
+    };
+    // ¿El toque/clic empezó sobre la línea blanca? (zona de agarre amplia)
+    const GRAB_TOL = 26;
+    const isGrabbingNow = (clientX) => {
+        const nx = nowXCss();
+        if (nx == null) return false;
+        const rect = wrap.getBoundingClientRect();
+        return Math.abs((clientX - rect.left) - nx) <= GRAB_TOL;
+    };
+
+    // La línea blanca "ahora" se AGARRA y se arrastra: al hacerlo se transforma en
+    // la línea verde (la blanca se oculta). Al soltar, vuelve a su sitio (ahora).
+
+    // Mouse
+    let __dragging = false;
+    wrap.addEventListener('mousedown', (e) => {
+        if (!isGrabbingNow(e.clientX)) return;   // solo si agarras la línea blanca
+        __dragging = true;
+        e.preventDefault();
+        ghost.style.transition = '';             // seguimiento rápido al arrastrar
+        updateAtClientX(e.clientX);
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (__dragging) updateAtClientX(e.clientX);
+    });
+    window.addEventListener('mouseup', () => {
+        if (__dragging) { __dragging = false; snapBack(); }
+    });
+    // Pista visual: cursor "grab" al acercarse a la línea blanca (sin mostrar la verde).
+    wrap.addEventListener('mousemove', (e) => {
+        if (__dragging) return;
+        wrap.classList.toggle('near-now', isGrabbingNow(e.clientX));
+    });
+    wrap.addEventListener('mouseleave', () => wrap.classList.remove('near-now'));
+
+    // Touch (móvil): igual, solo si el toque empieza sobre la línea blanca.
+    let __touchDragging = false;
     wrap.addEventListener('touchstart', (e) => {
-        if (e.touches[0]) updateAtClientX(e.touches[0].clientX);
+        if (e.touches[0] && isGrabbingNow(e.touches[0].clientX)) {
+            __touchDragging = true;
+            ghost.style.transition = '';          // seguimiento rápido al arrastrar
+            updateAtClientX(e.touches[0].clientX);
+        }
     }, { passive: true });
     wrap.addEventListener('touchmove', (e) => {
-        if (e.touches[0]) {
-            e.preventDefault();           // congela el desplazamiento vertical
+        if (__touchDragging && e.touches[0]) {
+            e.preventDefault();               // congela el scroll vertical solo al arrastrar
             updateAtClientX(e.touches[0].clientX);
         }
     }, { passive: false });
-    wrap.addEventListener('touchend', hide);
-    wrap.addEventListener('touchcancel', hide);
+    const endTouch = () => { if (__touchDragging) { __touchDragging = false; snapBack(); } };
+    wrap.addEventListener('touchend', endTouch);
+    wrap.addEventListener('touchcancel', endTouch);
 
     // Soporte teclado: flechas izquierda/derecha mueven el ghost en pasos de 15 min
     let kbMins = null;

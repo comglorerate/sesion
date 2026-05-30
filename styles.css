@@ -1193,11 +1193,14 @@ section { margin-bottom: var(--space-8); }
     width: 100%;
     border-radius: var(--radius-md);
     position: relative;
-    cursor: crosshair;
-    /* Al manipular la línea no debe desplazarse la página verticalmente */
-    touch-action: none;
+    cursor: default;
+    /* Permite desplazar la página al tocar el timeline; el arrastre de la línea
+       "ahora" congela el scroll por su cuenta (preventDefault en touchmove). */
+    touch-action: pan-y;
     /* tabIndex está puesto por JS — outline visible al focus por teclado */
 }
+.timeline-svg-wrap.near-now { cursor: grab; }
+.timeline-svg-wrap.is-scrubbing { cursor: grabbing; }
 .timeline-svg-wrap:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -1217,11 +1220,11 @@ section { margin-bottom: var(--space-8); }
     border-left: 2px dashed var(--accent);
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.12s ease, left 0.04s linear;
+    transition: opacity 0.14s ease, left 0.07s ease-out;
     transform: translateX(-1px);
     z-index: 2;
 }
-.timeline-ghost.is-active { opacity: 0.9; }
+.timeline-ghost.is-active { opacity: 0.95; }
 .timeline-ghost::before {
     content: '';
     position: absolute;
@@ -1231,7 +1234,37 @@ section { margin-bottom: var(--space-8); }
     height: 8px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.25);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+/* Realce orgánico del punto mientras se arrastra */
+.timeline-svg-wrap.is-scrubbing .timeline-ghost::before {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 6px rgba(45, 212, 191, 0.22), 0 0 12px rgba(45, 212, 191, 0.5);
+}
+
+/* Pulso (ripple) al soltar y aterrizar en "ahora" */
+.timeline-now-pulse {
+    position: absolute;
+    top: 1px;
+    width: 14px;
+    height: 14px;
+    margin-left: -7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+.timeline-now-pulse.animate {
+    animation: tl-now-pulse 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes tl-now-pulse {
+    0%   { opacity: 0.7; transform: scale(0.4); }
+    100% { opacity: 0;   transform: scale(2.6); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .timeline-now-pulse.animate { animation: none; }
 }
 
 /* Tooltip flotante con la hora + sesiones */
@@ -1253,6 +1286,66 @@ section { margin-bottom: var(--space-8); }
     text-align: center;
 }
 .timeline-tooltip.is-active { opacity: 1; }
+
+/* Reloj "ahora" sobre la línea blanca punteada */
+.timeline-now-label {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    transform: translate(-50%, -100%);
+    display: none;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(12, 22, 40, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+.timeline-now-label.is-visible { display: inline-flex; }
+.timeline-now-label i { font-size: 0.7rem; opacity: 0.9; }
+
+/* Manija (knob) en "ahora": indica que la línea se puede arrastrar (mouse y táctil) */
+.timeline-now-knob {
+    position: absolute;
+    top: 6px;
+    left: 0;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    color: #0c1628;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    z-index: 3;
+    pointer-events: none;            /* el wrap maneja el toque/clic */
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16), 0 2px 7px rgba(0, 0, 0, 0.5);
+    animation: tl-knob-breathe 2.4s ease-in-out infinite;
+}
+.timeline-now-knob.is-visible { display: inline-flex; }
+.timeline-svg-wrap.is-scrubbing .timeline-now-knob { display: none !important; }
+@keyframes tl-knob-breathe {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.14), 0 2px 7px rgba(0,0,0,0.5); }
+    50%      { box-shadow: 0 0 0 6px rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.5); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .timeline-now-knob { animation: none; }
+}
+
+/* Al arrastrar (scrubbing) ocultamos la línea "ahora" para no tener dos líneas:
+   solo se ve la verde; al soltar, la blanca vuelve. */
+.timeline-svg-wrap.is-scrubbing .tl-now { display: none; }
+.timeline-svg-wrap.is-scrubbing .timeline-now-label { display: none !important; }
 .timeline-tooltip::after {
     /* Pequeña flechita apuntando a la línea */
     content: '';
