@@ -29,6 +29,38 @@
     --bar-bg: #233252;
 }
 
+/* ===== Modo claro (tema global de la app) ===== */
+html.light {
+    --bg: #eef2f7;
+    --bg-muted: #ffffff;
+    --card: #ffffff;
+    --card-highlight: rgba(13, 148, 136, 0.08);
+    --text: #0f172a;
+    --text-soft: #334155;
+    --text-muted: #64748b;
+    --accent: #0d9488;
+    --accent-strong: #0f766e;
+    --accent-warning: #d97706;
+    --accent-danger: #e11d48;
+    --accent-info: #0ea5e9;
+    --accent-purple: #7c5cff;
+    --border: #dbe3ee;
+    --bar-bg: #e2e8f0;
+    --shadow-strong: 0 20px 45px rgba(15, 23, 42, 0.12);
+    --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+html.light body {
+    background: radial-gradient(circle at 20% 20%, rgba(13, 148, 136, 0.06), transparent 30%),
+                radial-gradient(circle at 80% 0%, rgba(124, 92, 255, 0.06), transparent 30%),
+                var(--bg);
+}
+html.light header { background: linear-gradient(135deg, #ffffff, #f1f5f9 70%); }
+/* Superficies con "blanco translúcido" que en claro deben oscurecerse un poco */
+html.light .card,
+html.light .news-card,
+html.light .crypto-event,
+html.light .cc-row { background: var(--card); }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -1334,6 +1366,10 @@ section { margin-bottom: var(--space-8); }
 }
 .timeline-now-knob.is-visible { display: inline-flex; }
 .timeline-svg-wrap.is-scrubbing .timeline-now-knob { display: none !important; }
+/* En claro: knob y pulso oscuros para contrastar sobre la tarjeta blanca */
+html.light .timeline-now-knob { background: #0f172a; color: #fff; box-shadow: 0 0 0 3px rgba(15,23,42,0.12), 0 2px 7px rgba(0,0,0,.25); }
+html.light .timeline-now-pulse { background: rgba(15, 23, 42, 0.85); }
+html.light .timeline-now-label { background: rgba(15,23,42,0.92); border-color: rgba(15,23,42,0.5); }
 @keyframes tl-knob-breathe {
     0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.14), 0 2px 7px rgba(0,0,0,0.5); }
     50%      { box-shadow: 0 0 0 6px rgba(255,255,255,0.10), 0 2px 7px rgba(0,0,0,0.5); }

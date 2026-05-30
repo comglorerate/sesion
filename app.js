@@ -1692,6 +1692,17 @@ function renderForexTimeline(nowMs) {
     const xAt = (mins) => padX + (mins / 1440) * innerW;
     const yAt = (laneIdx) => padY + laneIdx * (laneH + lanesGap);
 
+    // Colores según tema (claro/oscuro) para que el timeline se vea bien en ambos
+    const isLight = document.documentElement.classList.contains('light');
+    const COL = {
+        band:      isLight ? '#0f172a' : 'white',
+        tickLine:  isLight ? 'rgba(15,23,42,0.08)' : 'rgba(255,255,255,0.06)',
+        tickText:  isLight ? '#64748b' : '#94a3b8',
+        laneLabel: isLight ? '#334155' : '#cbd5e1',
+        laneBg:    isLight ? 'rgba(15,23,42,0.04)' : 'rgba(255,255,255,0.025)',
+        now:       isLight ? '#0f172a' : 'white'
+    };
+
     let html = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
 
     // Banda de overlap intensity (de fondo, según count)
@@ -1700,23 +1711,23 @@ function renderForexTimeline(nowMs) {
         const alpha = b.count >= 3 ? 0.22 : 0.12;
         const x1 = xAt(b.start);
         const x2 = xAt(b.end);
-        html += `<rect x="${x1}" y="${padY - 4}" width="${x2 - x1}" height="${H - padY * 2 + 8}" fill="white" fill-opacity="${alpha}" />`;
+        html += `<rect x="${x1}" y="${padY - 4}" width="${x2 - x1}" height="${H - padY * 2 + 8}" fill="${COL.band}" fill-opacity="${alpha}" />`;
     });
 
     // Líneas de hora cada 3h
     for (let h = 0; h <= 24; h += 3) {
         const x = xAt(h * 60);
-        html += `<line x1="${x}" y1="${padY - 4}" x2="${x}" y2="${H - padY - 14}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
-        html += `<text x="${x}" y="${H - 6}" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="Inter, sans-serif">${pad2(h)}:00</text>`;
+        html += `<line x1="${x}" y1="${padY - 4}" x2="${x}" y2="${H - padY - 14}" stroke="${COL.tickLine}" stroke-width="1"/>`;
+        html += `<text x="${x}" y="${H - 6}" text-anchor="middle" fill="${COL.tickText}" font-size="10" font-family="Inter, sans-serif">${pad2(h)}:00</text>`;
     }
 
     // Lanes
     lanes.forEach((lane, i) => {
         const y = yAt(i);
         // label
-        html += `<text x="${padX - 10}" y="${y + laneH * 0.7}" text-anchor="end" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter, sans-serif">${escapeHtml(lane.mkt.name)}</text>`;
+        html += `<text x="${padX - 10}" y="${y + laneH * 0.7}" text-anchor="end" fill="${COL.laneLabel}" font-size="11" font-weight="600" font-family="Inter, sans-serif">${escapeHtml(lane.mkt.name)}</text>`;
         // background lane
-        html += `<rect x="${padX}" y="${y}" width="${innerW}" height="${laneH}" fill="rgba(255,255,255,0.025)" rx="4"/>`;
+        html += `<rect x="${padX}" y="${y}" width="${innerW}" height="${laneH}" fill="${COL.laneBg}" rx="4"/>`;
         // segments
         lane.segments.forEach(([s, e]) => {
             const x1 = xAt(s);
@@ -1729,8 +1740,8 @@ function renderForexTimeline(nowMs) {
     const userNowMins = (userNowMs - userMidnight.getTime()) / 60000;
     if (userNowMins >= 0 && userNowMins <= 1440) {
         const x = xAt(userNowMins);
-        html += `<line class="tl-now" x1="${x}" y1="${padY - 6}" x2="${x}" y2="${H - padY - 14}" stroke="white" stroke-width="2" stroke-dasharray="3 3" />`;
-        html += `<circle class="tl-now" cx="${x}" cy="${padY - 6}" r="3.5" fill="white"/>`;
+        html += `<line class="tl-now" x1="${x}" y1="${padY - 6}" x2="${x}" y2="${H - padY - 14}" stroke="${COL.now}" stroke-width="2" stroke-dasharray="3 3" />`;
+        html += `<circle class="tl-now" cx="${x}" cy="${padY - 6}" r="3.5" fill="${COL.now}"/>`;
     }
 
     html += '</svg>';
