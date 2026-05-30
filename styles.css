@@ -1194,6 +1194,8 @@ section { margin-bottom: var(--space-8); }
     border-radius: var(--radius-md);
     position: relative;
     cursor: crosshair;
+    /* Al manipular la línea no debe desplazarse la página verticalmente */
+    touch-action: none;
     /* tabIndex está puesto por JS — outline visible al focus por teclado */
 }
 .timeline-svg-wrap:focus-visible {
