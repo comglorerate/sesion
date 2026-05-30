@@ -1547,6 +1547,31 @@ section { margin-bottom: var(--space-8); }
 }
 .nlf-chip.is-on { background: rgba(45,212,191,0.14); border-color: rgba(45,212,191,0.45); color: var(--text); }
 
+/* Relojes clave de cripto (funding, cierre diario, CME) */
+.crypto-clocks { margin-top: var(--space-4); display: flex; flex-direction: column; gap: 8px; }
+.cc-title { font-size: 1rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 2px; }
+.cc-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 60%), var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+.cc-icon {
+    width: 40px; height: 40px; border-radius: 11px; flex: none;
+    display: grid; place-items: center;
+    background: rgba(45, 212, 191, 0.12); color: var(--accent); font-size: 1.05rem;
+}
+.cc-row.cc-cme .cc-icon { background: rgba(56,189,248,0.12); color: var(--accent-info); }
+.cc-main { flex: 1; min-width: 0; }
+.cc-name { font-weight: 700; color: var(--text); }
+.cc-note { color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; }
+.cc-val { text-align: right; flex: none; display: flex; flex-direction: column; align-items: flex-end; }
+.cc-val b { color: var(--accent); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.cc-val span { color: var(--text-muted); font-size: 0.74rem; margin-top: 1px; }
+.cc-open { color: #04201d; background: var(--accent); font-weight: 800; font-size: 0.72rem; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.04em; }
+.cc-closed { color: var(--accent-danger); font-weight: 800; font-size: 0.72rem; letter-spacing: 0.04em; }
+
 /* Eventos cripto (halving, etc.) */
 .crypto-events { margin-top: var(--space-4); }
 .crypto-events-title { font-size: 1rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: var(--space-3); }

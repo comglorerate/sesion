@@ -2055,13 +2055,98 @@ function buildCryptoCardHTML() {
                     </div>
                 `).join('')}
             </div>
-
-            <div class="crypto-tip" data-i18n="crypto.tip"></div>
         </div>
     `;
 }
 
 let __cryptoInitialRender = false;
+
+// ============================================================
+// Relojes clave de cripto (funding, cierre diario, CME) — todo calculable
+// ============================================================
+
+// Próximo funding de perpetuos: cada 8h UTC (00:00 / 08:00 / 16:00)
+function nextFundingMs(now) {
+    const d = new Date(now);
+    for (const mk of [0, 8, 16]) {
+        const t = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), mk, 0, 0);
+        if (t > now) return t;
+    }
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 0, 0);
+}
+// Próximo cierre de vela diaria: 00:00 UTC
+function nextDailyCloseMs(now) {
+    const d = new Date(now);
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 0, 0);
+}
+// ¿Están abiertos los futuros de BTC en CME? Dom 18:00 → Vie 17:00 ET,
+// con mantenimiento diario 17:00–18:00 ET.
+function isCMEOpen(etParts) {
+    const wd = new Date(Date.UTC(etParts.year, etParts.month - 1, etParts.day, 12)).getUTCDay();
+    const h = etParts.hour;
+    if (wd === 6) return false;                 // sábado
+    if (wd === 0 && h < 18) return false;       // domingo antes de 18:00
+    if (wd === 5 && h >= 17) return false;      // viernes desde 17:00
+    if (wd >= 1 && wd <= 4 && h === 17) return false; // mantenimiento 17:00–18:00
+    return true;
+}
+
+function renderCryptoClocks(nowMs) {
+    const el = document.getElementById('crypto-clocks');
+    if (!el) return;
+    const now = nowMs ?? Date.now();
+    const es = currentLang !== 'en';
+    const tz = getEffectiveUserTimezone();
+    const fmtT = (ms) => {
+        try { return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz }).format(new Date(ms)); }
+        catch (e) { return '--:--'; }
+    };
+    const cd = (ms) => diffToFutureCountdown(now, new Date(ms)) || '--';
+
+    const fund = nextFundingMs(now);
+    const daily = nextDailyCloseMs(now);
+    const etp = TzUtils.getZonedParts(now, 'America/New_York');
+    const cmeOpen = isCMEOpen(etp);
+
+    const rows = [
+        {
+            icon: 'fa-arrows-rotate', cls: 'cc-fund',
+            name: es ? 'Funding (perpetuos)' : 'Funding (perps)',
+            note: es ? 'Cada 8h · Binance/Bybit/OKX' : 'Every 8h · Binance/Bybit/OKX',
+            main: `<b>${escapeHtml(cd(fund))}</b>`,
+            sub: `${fmtT(fund)} · ${new Date(fund).getUTCHours().toString().padStart(2, '0')}:00 UTC`
+        },
+        {
+            icon: 'fa-chart-column', cls: 'cc-daily',
+            name: es ? 'Cierre vela diaria' : 'Daily candle close',
+            note: '00:00 UTC',
+            main: `<b>${escapeHtml(cd(daily))}</b>`,
+            sub: fmtT(daily)
+        },
+        {
+            icon: 'fa-building-columns', cls: 'cc-cme',
+            name: es ? 'Futuros BTC (CME)' : 'BTC Futures (CME)',
+            note: es ? 'Dom 18:00 → Vie 17:00 ET' : 'Sun 6pm → Fri 5pm ET',
+            main: cmeOpen
+                ? `<span class="cc-open">${es ? 'ABIERTO' : 'OPEN'}</span>`
+                : `<span class="cc-closed">${es ? 'CERRADO' : 'CLOSED'}</span>`,
+            sub: cmeOpen ? '' : (es ? 'posible gap CME al reabrir' : 'possible CME gap on reopen')
+        }
+    ];
+
+    const title = es ? 'Relojes clave' : 'Key clocks';
+    el.innerHTML = `<h3 class="cc-title">${title}</h3>` + rows.map(r => `
+        <div class="cc-row ${r.cls}">
+            <div class="cc-icon"><i class="fa-solid ${r.icon}" aria-hidden="true"></i></div>
+            <div class="cc-main">
+                <div class="cc-name">${escapeHtml(r.name)}</div>
+                <div class="cc-note">${escapeHtml(r.note)}</div>
+            </div>
+            <div class="cc-val">${r.main}${r.sub ? `<span>${escapeHtml(r.sub)}</span>` : ''}</div>
+        </div>
+    `).join('');
+}
+
 // Próximos eventos cripto calculables (sin API). El halving de BTC es el principal.
 // Fecha estimada del próximo halving (~bloque 1.050.000, abril 2028).
 const NEXT_BTC_HALVING_MS = Date.UTC(2028, 3, 20, 0, 0, 0);
@@ -2119,6 +2204,7 @@ function renderCryptoEvents(nowMs) {
 function renderCryptoCard(nowMs) {
     const container = document.getElementById('crypto-grid');
     if (!container) return;
+    try { renderCryptoClocks(nowMs); } catch (e) { /* ignore */ }
     try { renderCryptoEvents(nowMs); } catch (e) { /* ignore */ }
 
     if (!__cryptoInitialRender || container.children.length === 0) {
