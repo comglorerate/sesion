@@ -48,7 +48,7 @@ const translations = {
             next_golden: 'Próxima ventana alta en {0}',
             closing_golden: 'Liquidez alta cierra en {0}',
             windows_title: 'Mejores ventanas (hora NY)',
-            ny_time: 'Hora NY:',
+            ny_time: 'Hora del mercado:',
             tip: 'Tip: el cripto sigue los flujos institucionales — concentra tu trading en estas horas.'
         },
         news: {
@@ -183,6 +183,9 @@ const translations = {
             day_short: { 0: 'D', 1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V', 6: 'S' },
             edit: 'Editar',
             delete: 'Eliminar',
+            delete_confirm: '¿Eliminar?',
+            confirm_yes: 'Sí, eliminar',
+            confirm_no: 'Cancelar',
             toggle_on: 'Desactivar',
             toggle_off: 'Activar',
             every_day: 'Todos los días',
@@ -249,7 +252,7 @@ const translations = {
             next_golden: 'Next high window in {0}',
             closing_golden: 'High liquidity closes in {0}',
             windows_title: 'Best windows (NY time)',
-            ny_time: 'NY time:',
+            ny_time: 'Market time:',
             tip: 'Tip: crypto follows institutional flows — concentrate your trading in these hours.'
         },
         news: {
@@ -384,6 +387,9 @@ const translations = {
             day_short: { 0: 'S', 1: 'M', 2: 'T', 3: 'W', 4: 'T', 5: 'F', 6: 'S' },
             edit: 'Edit',
             delete: 'Delete',
+            delete_confirm: 'Delete?',
+            confirm_yes: 'Yes, delete',
+            confirm_no: 'Cancel',
             toggle_on: 'Disable',
             toggle_off: 'Enable',
             every_day: 'Every day',
@@ -2002,11 +2008,12 @@ function updateClock() {
     if (clockText) clockText.textContent = formatted;
     if (tzText) tzText.textContent = tz.replace('_', ' ');
 
-    // "Hora NY" en la card de Cripto (refresca cada segundo para fluidez)
+    // "Hora del mercado" en la card de Cripto: sigue la zona horaria seleccionada
+    // por el usuario (igual que las cards de forex). Refresca cada segundo.
     try {
         const cryptoNy = document.querySelector('[data-field="crypto-ny-time"]');
         if (cryptoNy) {
-            const opts2 = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/New_York' };
+            const opts2 = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz };
             cryptoNy.textContent = new Intl.DateTimeFormat(undefined, opts2).format(now);
         }
     } catch (e) { /* ignore */ }
@@ -2371,11 +2378,11 @@ function renderCryptoCard(nowMs) {
         }
     }
 
-    // Hora NY (referencia institucional para el cripto) en formato 24h militar
+    // Hora del mercado: en la zona horaria seleccionada por el usuario (24h)
     try {
-        const opts = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/New_York' };
-        const nyTime = new Intl.DateTimeFormat(undefined, opts).format(new Date(nowMs));
-        setText(card, 'crypto-ny-time', nyTime);
+        const opts = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: getEffectiveUserTimezone() };
+        const mktTime = new Intl.DateTimeFormat(undefined, opts).format(new Date(nowMs));
+        setText(card, 'crypto-ny-time', mktTime);
     } catch (e) { /* ignore */ }
 }
 
@@ -3137,6 +3144,7 @@ function setupNotificationsUI() {
     const close = () => {
         modal.classList.add('hidden');
         document.body.classList.remove('notif-modal-open');
+        __pendingDeleteAlarmId = null;
     };
 
     trigger.addEventListener('click', open);
@@ -3257,7 +3265,23 @@ function setupNotificationsUI() {
             const id = item.dataset.alarmId;
             const alarm = notificationState.custom.find(a => a.id === id);
             if (!alarm) return;
-            if (e.target.closest('.notif-toggle')) {
+            if (e.target.closest('.notif-confirm-delete')) {
+                // Confirmar borrado
+                notificationState.custom = notificationState.custom.filter(a => a.id !== id);
+                __pendingDeleteAlarmId = null;
+                saveNotificationState();
+                rescheduleAllNotifications();
+                renderCustomAlarms();
+            } else if (e.target.closest('.notif-cancel-delete')) {
+                // Cancelar borrado
+                __pendingDeleteAlarmId = null;
+                renderCustomAlarms();
+            } else if (e.target.closest('.notif-delete')) {
+                // Pedir confirmación inline antes de borrar
+                __pendingDeleteAlarmId = id;
+                renderCustomAlarms();
+            } else if (e.target.closest('.notif-toggle')) {
+                __pendingDeleteAlarmId = null;
                 alarm.enabled = !alarm.enabled;
                 saveNotificationState();
                 // Activar una alarma con las notificaciones apagadas → pedir activarlas
@@ -3268,12 +3292,8 @@ function setupNotificationsUI() {
                 rescheduleAllNotifications();
                 renderCustomAlarms();
             } else if (e.target.closest('.notif-edit')) {
+                __pendingDeleteAlarmId = null;
                 openAlarmForm(alarm);
-            } else if (e.target.closest('.notif-delete')) {
-                notificationState.custom = notificationState.custom.filter(a => a.id !== id);
-                saveNotificationState();
-                rescheduleAllNotifications();
-                renderCustomAlarms();
             }
         });
     }
@@ -3338,19 +3358,42 @@ function refreshNotifModal() {
     renderCustomAlarms();
 }
 
+let __pendingDeleteAlarmId = null;
+
 function renderCustomAlarms() {
     const list = document.getElementById('notif-custom-list');
     if (!list) return;
     if (!notificationState.custom.length) {
+        __pendingDeleteAlarmId = null;
         list.innerHTML = `<div class="notif-empty-list">${escapeHtml(t('notifs.empty'))}</div>`;
         return;
     }
     const dayShort = translations[currentLang]?.notifs?.day_short || translations.es.notifs.day_short;
     const editLabel = t('notifs.edit');
     const deleteLabel = t('notifs.delete');
+    const yesLabel = t('notifs.confirm_yes');
+    const noLabel = t('notifs.confirm_no');
+    const confirmText = t('notifs.delete_confirm');
     list.innerHTML = notificationState.custom.map(a => {
         const dayLabel = formatDaysSummary(a.days, dayShort);
         const toggleLabel = a.enabled ? t('notifs.toggle_on') : t('notifs.toggle_off');
+        // Estado de confirmación de borrado (reemplaza las acciones de esa fila)
+        if (a.id === __pendingDeleteAlarmId) {
+            return `
+            <div class="notif-custom-item is-confirming" data-alarm-id="${escapeHtml(a.id)}">
+                <span class="notif-custom-ico is-danger"><i class="ph-fill ph-trash"></i></span>
+                <span class="notif-confirm-text">${escapeHtml(confirmText)}</span>
+                <div class="notif-custom-actions">
+                    <button type="button" class="notif-confirm-delete" aria-label="${escapeHtml(yesLabel)}" title="${escapeHtml(yesLabel)}">
+                        <i class="ph-fill ph-check-circle"></i>
+                    </button>
+                    <button type="button" class="notif-cancel-delete" aria-label="${escapeHtml(noLabel)}" title="${escapeHtml(noLabel)}">
+                        <i class="ph ph-x-circle"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        }
         return `
             <div class="notif-custom-item ${a.enabled ? '' : 'is-disabled'}" data-alarm-id="${escapeHtml(a.id)}">
                 <span class="notif-custom-ico"><i class="${a.enabled ? 'ph-fill ph-alarm' : 'ph ph-alarm'}"></i></span>
