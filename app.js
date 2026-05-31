@@ -482,13 +482,13 @@ function escapeHtml(str) {
 // cierre oficial (excepto Tokyo Stock Exchange que sí cierra; aquí la sesión Forex
 // continúa pero el volumen cae).
 const forexMarkets = [
-    { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney',  open: 7, close: 16, icon: 'fa-earth-oceania',  openDays: [1, 2, 3, 4, 5],
+    { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney',  open: 7, close: 16, icon: 'ph-globe-hemisphere-east',  openDays: [1, 2, 3, 4, 5],
       windows: [{ kind: 'calm', startH: 12, startM: 0, endH: 13, endM: 0, labelKey: 'forex.lunch' }] },
-    { id: 'tokyo',  name: 'Tokyo',  tz: 'Asia/Tokyo',        open: 9, close: 18, icon: 'fa-yen-sign',       openDays: [1, 2, 3, 4, 5],
+    { id: 'tokyo',  name: 'Tokyo',  tz: 'Asia/Tokyo',        open: 9, close: 18, icon: 'ph-currency-jpy',       openDays: [1, 2, 3, 4, 5],
       windows: [{ kind: 'calm', startH: 11, startM: 30, endH: 12, endM: 30, labelKey: 'forex.lunch' }] },
-    { id: 'london', name: 'London', tz: 'Europe/London',     open: 8, close: 17, icon: 'fa-sterling-sign',  openDays: [1, 2, 3, 4, 5],
+    { id: 'london', name: 'London', tz: 'Europe/London',     open: 8, close: 17, icon: 'ph-currency-gbp',  openDays: [1, 2, 3, 4, 5],
       windows: [{ kind: 'calm', startH: 12, startM: 0, endH: 13, endM: 0, labelKey: 'forex.lunch' }] },
-    { id: 'ny',     name: 'New York', tz: 'America/New_York', open: 8, close: 17, icon: 'fa-dollar-sign',   openDays: [1, 2, 3, 4, 5],
+    { id: 'ny',     name: 'New York', tz: 'America/New_York', open: 8, close: 17, icon: 'ph-currency-dollar',   openDays: [1, 2, 3, 4, 5],
       windows: [{ kind: 'calm', startH: 12, startM: 0, endH: 13, endM: 0, labelKey: 'forex.lunch' }] }
 ];
 
@@ -496,7 +496,7 @@ const stockMarkets = [
     {
         id: 'nasdaq', name: 'NASDAQ', tz: 'America/New_York',
         open: 9, openMin: 30, close: 16, closeMin: 0,
-        icon: 'fa-laptop-code', openDays: [1, 2, 3, 4, 5],
+        icon: 'ph-code', openDays: [1, 2, 3, 4, 5],
         // Ventanas internas (para resaltado y para la sección informativa de la card)
         // weekday=1=lunes ... weekday=4=jueves
         windows: [
@@ -967,7 +967,7 @@ function buildCardHTML(mkt) {
         <div class="card" data-mkt-id="${escapeHtml(mkt.id)}" role="article" aria-label="${escapeHtml(mkt.name)}">
             <div class="card-header">
                 <span class="market-name">${escapeHtml(mkt.name)}</span>
-                <i class="fa-solid ${escapeHtml(mkt.icon)} market-icon" aria-hidden="true"></i>
+                <i class="ph ${escapeHtml(mkt.icon)} market-icon" aria-hidden="true"></i>
             </div>
 
             <div class="status-badge" data-field="status-badge" role="status" aria-live="polite">
@@ -976,7 +976,7 @@ function buildCardHTML(mkt) {
             </div>
 
             <div class="countdown-chip hidden" data-field="countdown" aria-live="polite">
-                <i class="fa-regular fa-hourglass-half" aria-hidden="true"></i>
+                <i class="ph ph-hourglass-medium" aria-hidden="true"></i>
                 <span data-field="countdown-text"></span>
             </div>
 
@@ -1006,7 +1006,7 @@ function buildCardHTML(mkt) {
             <div class="sub-time"><span data-i18n="market_time">${escapeHtml(t('market_time'))}</span> <span data-field="mkt-time">--:--</span></div>
 
             <div class="early-close-note hidden" data-field="early-close-note">
-                <i class="fa-solid fa-clock"></i> <span data-i18n="early_close">${escapeHtml(t('early_close'))}</span>
+                <i class="ph ph-clock"></i> <span data-i18n="early_close">${escapeHtml(t('early_close'))}</span>
             </div>
             <div class="holiday-badge hidden" data-field="holiday-badge"></div>
         </div>
@@ -1692,6 +1692,17 @@ function renderForexTimeline(nowMs) {
     const xAt = (mins) => padX + (mins / 1440) * innerW;
     const yAt = (laneIdx) => padY + laneIdx * (laneH + lanesGap);
 
+    // Colores según tema (claro/oscuro) para que el timeline se vea bien en ambos
+    const isLight = document.documentElement.classList.contains('light');
+    const COL = {
+        band:      isLight ? '#0f172a' : 'white',
+        tickLine:  isLight ? 'rgba(15,23,42,0.08)' : 'rgba(255,255,255,0.06)',
+        tickText:  isLight ? '#64748b' : '#94a3b8',
+        laneLabel: isLight ? '#334155' : '#cbd5e1',
+        laneBg:    isLight ? 'rgba(15,23,42,0.04)' : 'rgba(255,255,255,0.025)',
+        now:       isLight ? '#0f172a' : 'white'
+    };
+
     let html = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
 
     // Banda de overlap intensity (de fondo, según count)
@@ -1700,23 +1711,23 @@ function renderForexTimeline(nowMs) {
         const alpha = b.count >= 3 ? 0.22 : 0.12;
         const x1 = xAt(b.start);
         const x2 = xAt(b.end);
-        html += `<rect x="${x1}" y="${padY - 4}" width="${x2 - x1}" height="${H - padY * 2 + 8}" fill="white" fill-opacity="${alpha}" />`;
+        html += `<rect x="${x1}" y="${padY - 4}" width="${x2 - x1}" height="${H - padY * 2 + 8}" fill="${COL.band}" fill-opacity="${alpha}" />`;
     });
 
     // Líneas de hora cada 3h
     for (let h = 0; h <= 24; h += 3) {
         const x = xAt(h * 60);
-        html += `<line x1="${x}" y1="${padY - 4}" x2="${x}" y2="${H - padY - 14}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
-        html += `<text x="${x}" y="${H - 6}" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="Inter, sans-serif">${pad2(h)}:00</text>`;
+        html += `<line x1="${x}" y1="${padY - 4}" x2="${x}" y2="${H - padY - 14}" stroke="${COL.tickLine}" stroke-width="1"/>`;
+        html += `<text x="${x}" y="${H - 6}" text-anchor="middle" fill="${COL.tickText}" font-size="10" font-family="Inter, sans-serif">${pad2(h)}:00</text>`;
     }
 
     // Lanes
     lanes.forEach((lane, i) => {
         const y = yAt(i);
         // label
-        html += `<text x="${padX - 10}" y="${y + laneH * 0.7}" text-anchor="end" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter, sans-serif">${escapeHtml(lane.mkt.name)}</text>`;
+        html += `<text x="${padX - 10}" y="${y + laneH * 0.7}" text-anchor="end" fill="${COL.laneLabel}" font-size="11" font-weight="600" font-family="Inter, sans-serif">${escapeHtml(lane.mkt.name)}</text>`;
         // background lane
-        html += `<rect x="${padX}" y="${y}" width="${innerW}" height="${laneH}" fill="rgba(255,255,255,0.025)" rx="4"/>`;
+        html += `<rect x="${padX}" y="${y}" width="${innerW}" height="${laneH}" fill="${COL.laneBg}" rx="4"/>`;
         // segments
         lane.segments.forEach(([s, e]) => {
             const x1 = xAt(s);
@@ -1729,8 +1740,8 @@ function renderForexTimeline(nowMs) {
     const userNowMins = (userNowMs - userMidnight.getTime()) / 60000;
     if (userNowMins >= 0 && userNowMins <= 1440) {
         const x = xAt(userNowMins);
-        html += `<line class="tl-now" x1="${x}" y1="${padY - 6}" x2="${x}" y2="${H - padY - 14}" stroke="white" stroke-width="2" stroke-dasharray="3 3" />`;
-        html += `<circle class="tl-now" cx="${x}" cy="${padY - 6}" r="3.5" fill="white"/>`;
+        html += `<line class="tl-now" x1="${x}" y1="${padY - 6}" x2="${x}" y2="${H - padY - 14}" stroke="${COL.now}" stroke-width="2" stroke-dasharray="3 3" />`;
+        html += `<circle class="tl-now" cx="${x}" cy="${padY - 6}" r="3.5" fill="${COL.now}"/>`;
     }
 
     html += '</svg>';
@@ -1747,7 +1758,7 @@ function renderForexTimeline(nowMs) {
             try { const pn = TzUtils.getZonedParts(userNowMs, userTz); hh = pn.hour; mm = pn.minute; }
             catch (e) { const dn = new Date(userNowMs); hh = dn.getHours(); mm = dn.getMinutes(); }
             nowLabel.style.left = leftPct;
-            nowLabel.innerHTML = `<i class="fa-regular fa-clock" aria-hidden="true"></i> ${pad2(hh)}:${pad2(mm)}`;
+            nowLabel.innerHTML = `<i class="ph ph-clock" aria-hidden="true"></i> ${pad2(hh)}:${pad2(mm)}`;
             nowLabel.classList.add('is-visible');
             nowLabel.setAttribute('aria-hidden', 'false');
         } else {
@@ -2129,7 +2140,7 @@ function buildCryptoCardHTML() {
     return `
         <div class="card crypto-card" data-mkt-id="crypto" role="article" aria-label="Crypto market">
             <div class="card-header crypto-card-header-icon-only">
-                <i class="fa-brands fa-bitcoin market-icon" aria-hidden="true"></i>
+                <i class="ph ph-currency-btc market-icon" aria-hidden="true"></i>
             </div>
 
             <div class="status-badge status-open" role="status" aria-live="polite">
@@ -2138,7 +2149,7 @@ function buildCryptoCardHTML() {
             </div>
 
             <div class="countdown-chip" data-field="crypto-countdown">
-                <i class="fa-regular fa-hourglass-half" aria-hidden="true"></i>
+                <i class="ph ph-hourglass-medium" aria-hidden="true"></i>
                 <span data-field="crypto-countdown-text"></span>
             </div>
 
@@ -2223,21 +2234,21 @@ function renderCryptoClocks(nowMs) {
 
     const rows = [
         {
-            icon: 'fa-arrows-rotate', cls: 'cc-fund',
+            icon: 'ph-arrows-clockwise', cls: 'cc-fund',
             name: es ? 'Funding (perpetuos)' : 'Funding (perps)',
             note: es ? 'Cada 8h · Binance/Bybit/OKX' : 'Every 8h · Binance/Bybit/OKX',
             main: `<b>${escapeHtml(cd(fund))}</b>`,
             sub: `${fmtT(fund)} · ${new Date(fund).getUTCHours().toString().padStart(2, '0')}:00 UTC`
         },
         {
-            icon: 'fa-chart-column', cls: 'cc-daily',
+            icon: 'ph-chart-bar', cls: 'cc-daily',
             name: es ? 'Cierre vela diaria' : 'Daily candle close',
             note: '00:00 UTC',
             main: `<b>${escapeHtml(cd(daily))}</b>`,
             sub: fmtT(daily)
         },
         {
-            icon: 'fa-building-columns', cls: 'cc-cme',
+            icon: 'ph-bank', cls: 'cc-cme',
             name: es ? 'Futuros BTC (CME)' : 'BTC Futures (CME)',
             note: es ? 'Dom 18:00 → Vie 17:00 ET' : 'Sun 6pm → Fri 5pm ET',
             main: cmeOpen
@@ -2250,7 +2261,7 @@ function renderCryptoClocks(nowMs) {
     const title = es ? 'Relojes clave' : 'Key clocks';
     el.innerHTML = `<h3 class="cc-title">${title}</h3>` + rows.map(r => `
         <div class="cc-row ${r.cls}">
-            <div class="cc-icon"><i class="fa-solid ${r.icon}" aria-hidden="true"></i></div>
+            <div class="cc-icon"><i class="ph ${r.icon}" aria-hidden="true"></i></div>
             <div class="cc-main">
                 <div class="cc-name">${escapeHtml(r.name)}</div>
                 <div class="cc-note">${escapeHtml(r.note)}</div>
@@ -2272,7 +2283,7 @@ function renderCryptoEvents(nowMs) {
 
     const events = [
         {
-            icon: 'fa-brands fa-bitcoin',
+            icon: 'ph ph-currency-btc',
             name: es ? 'Halving de Bitcoin' : 'Bitcoin Halving',
             note: es ? 'Reduce a la mitad la emisión de BTC · estimado' : 'Halves BTC issuance · estimated',
             ms: NEXT_BTC_HALVING_MS
@@ -2530,16 +2541,16 @@ function diffToFutureCountdown(nowMs, targetDate) {
 }
 
 const NEWS_EVENTS = [
-    { id: 'fomc',    icon: 'fa-gavel',          impactKey: 'news.impact_max',  finder: findNextFOMC,   exact: true,  badgeClass: 'impact-max' },
-    { id: 'cpi',     icon: 'fa-chart-line',     impactKey: 'news.impact_max',  finder: findNextCPI,    exact: false, badgeClass: 'impact-max' },
-    { id: 'pce',     icon: 'fa-fire',           impactKey: 'news.impact_max',  finder: findNextPCE,    exact: false, badgeClass: 'impact-max' },
-    { id: 'nfp',     icon: 'fa-briefcase',      impactKey: 'news.impact_high', finder: findNextNFP,    exact: true,  badgeClass: 'impact-high' },
-    { id: 'retail',  icon: 'fa-cart-shopping',  impactKey: 'news.impact_high', finder: findNextRetail, exact: false, badgeClass: 'impact-high' },
-    { id: 'ppi',     icon: 'fa-industry',       impactKey: 'news.impact_high', finder: findNextPPI,    exact: false, badgeClass: 'impact-high' },
-    { id: 'ism_svc', icon: 'fa-bell-concierge', impactKey: 'news.impact_high', finder: findNextISMsvc, exact: false, badgeClass: 'impact-high' },
-    { id: 'ism_mfg', icon: 'fa-gears',          impactKey: 'news.impact_high', finder: findNextISMmfg, exact: false, badgeClass: 'impact-high' },
-    { id: 'jobless', icon: 'fa-user-clock',     impactKey: 'news.impact_med',  finder: findNextJobless,exact: true,  badgeClass: 'impact-med' },
-    { id: 'cme',     icon: 'fa-calendar-check', impactKey: 'news.impact_high', finder: findNextCME,    exact: true,  badgeClass: 'impact-high' }
+    { id: 'fomc',    icon: 'ph-gavel',          impactKey: 'news.impact_max',  finder: findNextFOMC,   exact: true,  badgeClass: 'impact-max' },
+    { id: 'cpi',     icon: 'ph-chart-line',     impactKey: 'news.impact_max',  finder: findNextCPI,    exact: false, badgeClass: 'impact-max' },
+    { id: 'pce',     icon: 'ph-fire',           impactKey: 'news.impact_max',  finder: findNextPCE,    exact: false, badgeClass: 'impact-max' },
+    { id: 'nfp',     icon: 'ph-briefcase',      impactKey: 'news.impact_high', finder: findNextNFP,    exact: true,  badgeClass: 'impact-high' },
+    { id: 'retail',  icon: 'ph-shopping-cart',  impactKey: 'news.impact_high', finder: findNextRetail, exact: false, badgeClass: 'impact-high' },
+    { id: 'ppi',     icon: 'ph-factory',       impactKey: 'news.impact_high', finder: findNextPPI,    exact: false, badgeClass: 'impact-high' },
+    { id: 'ism_svc', icon: 'ph-bell', impactKey: 'news.impact_high', finder: findNextISMsvc, exact: false, badgeClass: 'impact-high' },
+    { id: 'ism_mfg', icon: 'ph-gear-six',          impactKey: 'news.impact_high', finder: findNextISMmfg, exact: false, badgeClass: 'impact-high' },
+    { id: 'jobless', icon: 'ph-user',     impactKey: 'news.impact_med',  finder: findNextJobless,exact: true,  badgeClass: 'impact-med' },
+    { id: 'cme',     icon: 'ph-calendar-check', impactKey: 'news.impact_high', finder: findNextCME,    exact: true,  badgeClass: 'impact-high' }
 ];
 
 let __newsInitialRender = false;
@@ -2677,7 +2688,7 @@ function renderLiveCalendar(nowMs) {
         const key = e.currency + '@' + e.date;
         const on = hasEventReminder(key);
         const bell = isPast ? '' :
-            `<button class="lv-bell ${on ? 'is-on' : ''}" data-ev-key="${escapeHtml(key)}" aria-label="${escapeHtml(L.notify)}" title="${escapeHtml(on ? L.notifyOn : L.notify)}"><i class="fa-${on ? 'solid' : 'regular'} fa-bell"></i></button>`;
+            `<button class="lv-bell ${on ? 'is-on' : ''}" data-ev-key="${escapeHtml(key)}" aria-label="${escapeHtml(L.notify)}" title="${escapeHtml(on ? L.notifyOn : L.notify)}"><i class="ph${on ? '-fill' : ''} ph-bell"></i></button>`;
         return `
             <div class="news-live-row ${imp} ${within15 ? 'is-now' : ''} ${isPast ? 'is-past' : ''}">
                 <span class="lv-dot"></span>
@@ -2712,14 +2723,14 @@ function renderNewsSection(nowMs) {
             <div class="news-card ${ev.badgeClass}" data-news-id="${ev.id}">
                 <div class="news-card-header">
                     <div class="news-title">
-                        <i class="fa-solid ${ev.icon}" aria-hidden="true"></i>
+                        <i class="ph ${ev.icon}" aria-hidden="true"></i>
                         <span data-i18n="news.events.${ev.id}.name">${escapeHtml(ev.id.toUpperCase())}</span>
                     </div>
                     <span class="news-impact" data-i18n="${ev.impactKey}"></span>
                 </div>
                 <div class="news-long" data-i18n="news.events.${ev.id}.long"></div>
                 <div class="news-when">
-                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                    <i class="ph ph-clock" aria-hidden="true"></i>
                     <span data-i18n="news.events.${ev.id}.when"></span>
                 </div>
                 <div class="news-next-row">
@@ -3319,13 +3330,13 @@ function renderCustomAlarms() {
                 <span class="notif-custom-days">${escapeHtml(dayLabel)}</span>
                 <div class="notif-custom-actions">
                     <button type="button" class="notif-toggle" aria-label="${escapeHtml(toggleLabel)}" title="${escapeHtml(toggleLabel)}">
-                        <i class="fa-solid ${a.enabled ? 'fa-toggle-on' : 'fa-toggle-off'}"></i>
+                        <i class="ph ${a.enabled ? 'ph-toggle-right' : 'ph-toggle-left'}"></i>
                     </button>
                     <button type="button" class="notif-edit" aria-label="${escapeHtml(editLabel)}" title="${escapeHtml(editLabel)}">
-                        <i class="fa-solid fa-pen-to-square"></i>
+                        <i class="ph ph-pencil-simple"></i>
                     </button>
                     <button type="button" class="notif-delete" aria-label="${escapeHtml(deleteLabel)}" title="${escapeHtml(deleteLabel)}">
-                        <i class="fa-solid fa-trash"></i>
+                        <i class="ph ph-trash"></i>
                     </button>
                 </div>
             </div>

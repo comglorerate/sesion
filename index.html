@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <script>(function(){try{if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');}catch(e){}})();</script>
     <title>Horarios de Mercados Financieros</title>
     <meta name="theme-color" content="#0f111f">
     <meta name="description" content="Sesiones y horarios de los principales mercados de acciones y divisas, con estado en vivo, festivos y ventanas de volatilidad.">
@@ -17,7 +18,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 
     <link rel="stylesheet" href="styles.css?v=2.0.0">
     <link rel="manifest" href="manifest.webmanifest">
@@ -28,24 +30,24 @@
 
     <header>
         <h1>
-            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+            <i class="ph ph-chart-line" aria-hidden="true"></i>
             <span data-i18n="title">Horarios de Mercados Financieros</span>
         </h1>
 
 
         <div class="user-info">
             <button type="button" id="user-timezone" class="user-info-btn" data-i18n-aria-label="tz_picker.open" aria-haspopup="dialog">
-                <i class="fa-solid fa-globe" aria-hidden="true"></i>
+                <i class="ph ph-globe" aria-hidden="true"></i>
                 <span id="user-timezone-text" data-i18n="detecting">Detectando...</span>
-                <i class="fa-solid fa-chevron-down chevron" aria-hidden="true"></i>
+                <i class="ph ph-caret-down chevron" aria-hidden="true"></i>
             </button>
             <button type="button" id="notif-trigger" class="user-info-btn notif-trigger" data-i18n-aria-label="notifs.open" aria-haspopup="dialog">
-                <i class="fa-regular fa-bell" aria-hidden="true"></i>
+                <i class="ph ph-bell" aria-hidden="true"></i>
                 <span data-i18n="notifs.button">Notificaciones</span>
                 <span class="notif-active-dot" data-field="notif-active-dot" aria-hidden="true"></span>
             </button>
             <span id="user-clock">
-                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                <i class="ph ph-clock" aria-hidden="true"></i>
                 <span id="user-clock-text">--:--:--</span>
             </span>
         </div>
@@ -57,11 +59,11 @@
             <div class="tz-modal-header">
                 <h3 id="tz-modal-title" data-i18n="tz_picker.title">Seleccionar zona horaria</h3>
                 <button type="button" id="tz-modal-close" data-i18n-aria-label="tz_picker.close" aria-label="Cerrar">
-                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    <i class="ph ph-x" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="tz-search-wrap">
-                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
                 <input type="text" id="tz-search" data-i18n-placeholder="tz_picker.search_placeholder" placeholder="Buscar ciudad o zona..." autocomplete="off" />
             </div>
             <div class="tz-modal-list" id="tz-list" role="listbox"></div>
@@ -76,11 +78,11 @@
         <div class="notif-modal-card">
             <div class="notif-modal-header">
                 <h3 id="notif-modal-title">
-                    <i class="fa-regular fa-bell" aria-hidden="true"></i>
+                    <i class="ph ph-bell" aria-hidden="true"></i>
                     <span data-i18n="notifs.title">Notificaciones</span>
                 </h3>
                 <button type="button" id="notif-modal-close" data-i18n-aria-label="notifs.close" aria-label="Cerrar">
-                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    <i class="ph ph-x" aria-hidden="true"></i>
                 </button>
             </div>
 
@@ -123,7 +125,7 @@
                     <div class="notif-section-row">
                         <h4 data-i18n="notifs.custom_title">Alarmas personalizadas</h4>
                         <button type="button" id="notif-add-alarm" class="notif-add-btn">
-                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            <i class="ph ph-plus" aria-hidden="true"></i>
                             <span data-i18n="notifs.add">Añadir</span>
                         </button>
                     </div>
@@ -198,7 +200,7 @@
                 <div id="forex-timeline" class="timeline-svg-wrap" role="img" aria-label="Timeline de sesiones de Forex">
                     <div id="forex-timeline-svg"></div>
                     <div id="timeline-now-pulse" class="timeline-now-pulse" aria-hidden="true"></div>
-                    <div id="timeline-now-knob" class="timeline-now-knob" aria-hidden="true"><i class="fa-solid fa-arrows-left-right"></i></div>
+                    <div id="timeline-now-knob" class="timeline-now-knob" aria-hidden="true"><i class="ph ph-arrows-left-right"></i></div>
                     <div id="timeline-now-label" class="timeline-now-label" aria-hidden="true"></div>
                     <div id="timeline-ghost" class="timeline-ghost" aria-hidden="true"></div>
                     <div id="timeline-tooltip" class="timeline-tooltip" aria-hidden="true">
