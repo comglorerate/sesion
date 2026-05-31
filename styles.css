@@ -521,7 +521,25 @@ body.notif-modal-open {
     border-radius: var(--radius-sm);
     margin-bottom: 6px;
 }
-.notif-custom-item.is-disabled { opacity: 0.5; }
+.notif-custom-item.is-disabled { opacity: 0.55; }
+.notif-custom-ico {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    background: rgba(45, 212, 191, 0.14);
+    color: var(--accent);
+}
+.notif-custom-item.is-disabled .notif-custom-ico {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+}
+.notif-custom-actions .notif-toggle.is-on { color: var(--accent); }
+.notif-custom-actions .notif-toggle:hover { color: var(--accent-strong); }
 .notif-custom-time {
     font-weight: 800;
     font-size: 1rem;
