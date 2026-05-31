@@ -3150,21 +3150,10 @@ function setupNotificationsUI() {
     if (masterToggle) {
         masterToggle.addEventListener('change', async () => {
             if (masterToggle.checked) {
-                if (!notifSupported()) {
-                    masterToggle.checked = false;
-                    setPermissionStatus('unsupported');
-                    return;
-                }
-                const res = await ensureNotificationPermission();
-                setPermissionStatus(res);
-                if (res !== 'granted') {
-                    masterToggle.checked = false;
-                    notificationState.enabled = false;
-                } else {
-                    notificationState.enabled = true;
-                }
+                await enableNotificationsMaster();
             } else {
                 notificationState.enabled = false;
+                masterToggle.checked = false;
             }
             saveNotificationState();
             rescheduleAllNotifications();
@@ -3173,10 +3162,15 @@ function setupNotificationsUI() {
 
     // Preset checkboxes
     modal.querySelectorAll('input[type="checkbox"][data-preset]').forEach(cb => {
-        cb.addEventListener('change', () => {
+        cb.addEventListener('change', async () => {
             const id = cb.getAttribute('data-preset');
             notificationState.presets[id] = cb.checked;
             saveNotificationState();
+            // Si activan un check con las notificaciones apagadas, pedir activarlas
+            if (cb.checked && !notificationsActive()) {
+                await enableNotificationsMaster();
+                saveNotificationState();
+            }
             rescheduleAllNotifications();
         });
     });
@@ -3218,7 +3212,7 @@ function setupNotificationsUI() {
     });
 
     // Botón "Guardar / Actualizar" del form
-    if (confirmAdd) confirmAdd.addEventListener('click', () => {
+    if (confirmAdd) confirmAdd.addEventListener('click', async () => {
         const time = document.getElementById('notif-new-time').value;
         const message = document.getElementById('notif-new-message').value.trim() || '⏰ Alarma';
         const days = Array.from(addForm.querySelectorAll('.notif-day input:checked')).map(c => Number(c.value));
@@ -3244,6 +3238,11 @@ function setupNotificationsUI() {
         }
 
         saveNotificationState();
+        // Alarma nueva activa con notificaciones apagadas → pedir activarlas
+        if (!__editingAlarmId && !notificationsActive()) {
+            await enableNotificationsMaster();
+            saveNotificationState();
+        }
         rescheduleAllNotifications();
         addForm.classList.add('hidden');
         __editingAlarmId = null;
@@ -3252,7 +3251,7 @@ function setupNotificationsUI() {
 
     // Delegación: toggle / editar / eliminar alarmas custom
     if (customList) {
-        customList.addEventListener('click', (e) => {
+        customList.addEventListener('click', async (e) => {
             const item = e.target.closest('.notif-custom-item');
             if (!item) return;
             const id = item.dataset.alarmId;
@@ -3261,6 +3260,11 @@ function setupNotificationsUI() {
             if (e.target.closest('.notif-toggle')) {
                 alarm.enabled = !alarm.enabled;
                 saveNotificationState();
+                // Activar una alarma con las notificaciones apagadas → pedir activarlas
+                if (alarm.enabled && !notificationsActive()) {
+                    await enableNotificationsMaster();
+                    saveNotificationState();
+                }
                 rescheduleAllNotifications();
                 renderCustomAlarms();
             } else if (e.target.closest('.notif-edit')) {
@@ -3289,6 +3293,30 @@ function setPermissionStatus(status) {
     else if (status === 'denied') { key = 'notifs.permission_denied'; el.classList.add('is-error'); }
     else if (status === 'unsupported') { key = 'notifs.permission_unsupported'; el.classList.add('is-error'); }
     el.textContent = t(key);
+}
+
+// ¿Están las notificaciones realmente activas (master ON + permiso concedido)?
+function notificationsActive() {
+    return notificationState.enabled && notifPermission() === 'granted';
+}
+
+// Activa las notificaciones a nivel general: pide permiso si hace falta y
+// enciende el interruptor maestro. Devuelve true si quedaron activas.
+// Se usa tanto desde el toggle maestro como al activar un check con el master
+// apagado (le "pide" al usuario activar las notificaciones).
+async function enableNotificationsMaster() {
+    const masterToggle = document.getElementById('notif-master-toggle');
+    if (!notifSupported()) {
+        setPermissionStatus('unsupported');
+        notificationState.enabled = false;
+        if (masterToggle) masterToggle.checked = false;
+        return false;
+    }
+    const res = await ensureNotificationPermission();
+    setPermissionStatus(res);
+    notificationState.enabled = (res === 'granted');
+    if (masterToggle) masterToggle.checked = notificationState.enabled;
+    return notificationState.enabled;
 }
 
 function refreshNotifModal() {
@@ -3325,12 +3353,13 @@ function renderCustomAlarms() {
         const toggleLabel = a.enabled ? t('notifs.toggle_on') : t('notifs.toggle_off');
         return `
             <div class="notif-custom-item ${a.enabled ? '' : 'is-disabled'}" data-alarm-id="${escapeHtml(a.id)}">
+                <span class="notif-custom-ico"><i class="${a.enabled ? 'ph-fill ph-alarm' : 'ph ph-alarm'}"></i></span>
                 <span class="notif-custom-time">${escapeHtml(a.time)}</span>
                 <span class="notif-custom-message">${escapeHtml(a.message || '')}</span>
                 <span class="notif-custom-days">${escapeHtml(dayLabel)}</span>
                 <div class="notif-custom-actions">
-                    <button type="button" class="notif-toggle" aria-label="${escapeHtml(toggleLabel)}" title="${escapeHtml(toggleLabel)}">
-                        <i class="ph ${a.enabled ? 'ph-toggle-right' : 'ph-toggle-left'}"></i>
+                    <button type="button" class="notif-toggle ${a.enabled ? 'is-on' : ''}" aria-label="${escapeHtml(toggleLabel)}" title="${escapeHtml(toggleLabel)}">
+                        <i class="${a.enabled ? 'ph-fill ph-bell-ringing' : 'ph ph-bell-slash'}"></i>
                     </button>
                     <button type="button" class="notif-edit" aria-label="${escapeHtml(editLabel)}" title="${escapeHtml(editLabel)}">
                         <i class="ph ph-pencil-simple"></i>
