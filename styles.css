@@ -540,6 +540,21 @@ body.notif-modal-open {
 }
 .notif-custom-actions .notif-toggle.is-on { color: var(--accent); }
 .notif-custom-actions .notif-toggle:hover { color: var(--accent-strong); }
+/* Confirmación de borrado inline */
+.notif-custom-item.is-confirming { border-color: var(--accent-danger); }
+.notif-custom-ico.is-danger {
+    background: rgba(251, 113, 133, 0.16);
+    color: var(--accent-danger);
+}
+.notif-confirm-text {
+    flex: 1;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--accent-danger);
+}
+.notif-custom-actions .notif-confirm-delete { color: var(--accent-danger); font-size: 1.05rem; }
+.notif-custom-actions .notif-confirm-delete:hover { color: var(--accent-danger); background: rgba(251, 113, 133, 0.12); }
+.notif-custom-actions .notif-cancel-delete:hover { color: var(--text); }
 .notif-custom-time {
     font-weight: 800;
     font-size: 1rem;
