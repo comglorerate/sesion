@@ -1622,7 +1622,7 @@ function renderForexTimeline(nowMs) {
     const laneCount = forexMarkets.length;
     const laneH = 22;
     const innerW = W - padX * 2;
-    const H = padY * 2 + laneCount * laneH + (laneCount - 1) * lanesGap + 22; // +22 para hour ticks abajo
+    // H se calcula más abajo (depende de cuántas sub-filas ocupen las killzones).
 
     const userTz = getEffectiveUserTimezone();
     let userMidnight, userNowMs;
@@ -1694,9 +1694,62 @@ function renderForexTimeline(nowMs) {
     }
     if (prevCount > 0) overlapBand.push({ start: segStart, end: 1440, count: prevCount });
 
+    // ---- Killzones (carril dedicado) ----
+    // Ancladas a hora de Nueva York (ET) y convertidas a la zona del usuario,
+    // igual que las sesiones. Incluyen su sub-ventana Silver Bullet.
+    const kzEs = currentLang !== 'en';
+    const KZ_META = {
+        asia:         { color: '#c084fc', label: 'Asia' },
+        london:       { color: '#60a5fa', label: kzEs ? 'Londres' : 'London' },
+        ny:           { color: '#34d399', label: 'NY AM' },
+        london_close: { color: '#fb7185', label: kzEs ? 'Cierre LDN' : 'LDN close' }
+    };
+    const SB_COLOR = '#fcd34d';
+    const kzSegments = [];
+    KILLZONES.forEach(kz => {
+        for (const dayOffset of [-1, 0, 1]) {
+            const ref = new Date(userMidnight.getTime() + dayOffset * 86400000 + 12 * 3600 * 1000);
+            const etDate = TzUtils.getZonedParts(ref.getTime(), 'America/New_York');
+            if (!kz.days.includes(etDate.weekdayIndex)) continue;
+            const startInst = instantInET(etDate.year, etDate.month, etDate.day, kz.startH, kz.startM);
+            const endInst = instantInET(etDate.year, etDate.month, etDate.day, kz.endH, kz.endM);
+            const vs = Math.max(0, (startInst.getTime() - userMidnight.getTime()) / 60000);
+            const ve = Math.min(1440, (endInst.getTime() - userMidnight.getTime()) / 60000);
+            if (ve <= vs) continue;
+            let sb = null;
+            if (kz.sb) {
+                const sbS = instantInET(etDate.year, etDate.month, etDate.day, kz.sb.startH, kz.sb.startM || 0);
+                const sbE = instantInET(etDate.year, etDate.month, etDate.day, kz.sb.endH, kz.sb.endM || 0);
+                const sbs = Math.max(vs, (sbS.getTime() - userMidnight.getTime()) / 60000);
+                const sbe = Math.min(ve, (sbE.getTime() - userMidnight.getTime()) / 60000);
+                if (sbe > sbs) sb = [sbs, sbe];
+            }
+            const meta = KZ_META[kz.id] || { color: '#94a3b8', label: kz.id };
+            kzSegments.push({ id: kz.id, start: vs, end: ve, sb, color: meta.color, label: meta.label });
+        }
+    });
+    // Empaquetado greedy en sub-filas para evitar colisiones (NY AM vs Cierre LDN)
+    kzSegments.sort((a, b) => a.start - b.start);
+    const kzRowEnds = [];
+    kzSegments.forEach(seg => {
+        let row = kzRowEnds.findIndex(end => seg.start >= end - 0.001);
+        if (row === -1) { row = kzRowEnds.length; kzRowEnds.push(seg.end); }
+        else kzRowEnds[row] = seg.end;
+        seg.row = row;
+    });
+    const kzRows = Math.max(1, kzRowEnds.length);
+
+    // Geometría vertical (mercados arriba, killzones abajo)
+    const marketsBottom = padY + laneCount * laneH + (laneCount - 1) * lanesGap;
+    const kzGap = 16, kzSubH = 14, kzSubGap = 3;
+    const kzTrackH = kzRows * kzSubH + (kzRows - 1) * kzSubGap;
+    const kzTop = marketsBottom + kzGap;
+    const H = kzTop + kzTrackH + 22; // +22 para las horas abajo
+
     // ---- Render SVG ----
     const xAt = (mins) => padX + (mins / 1440) * innerW;
     const yAt = (laneIdx) => padY + laneIdx * (laneH + lanesGap);
+    const kzYAt = (row) => kzTop + row * (kzSubH + kzSubGap);
 
     // Colores según tema (claro/oscuro) para que el timeline se vea bien en ambos
     const isLight = document.documentElement.classList.contains('light');
@@ -1717,7 +1770,7 @@ function renderForexTimeline(nowMs) {
         const alpha = b.count >= 3 ? 0.22 : 0.12;
         const x1 = xAt(b.start);
         const x2 = xAt(b.end);
-        html += `<rect x="${x1}" y="${padY - 4}" width="${x2 - x1}" height="${H - padY * 2 + 8}" fill="${COL.band}" fill-opacity="${alpha}" />`;
+        html += `<rect x="${x1}" y="${padY - 4}" width="${x2 - x1}" height="${marketsBottom - padY + 8}" fill="${COL.band}" fill-opacity="${alpha}" />`;
     });
 
     // Líneas de hora cada 3h
@@ -1740,6 +1793,24 @@ function renderForexTimeline(nowMs) {
             const x2 = xAt(e);
             html += `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="${laneH}" fill="${lane.color}" fill-opacity="0.65" rx="4"/>`;
         });
+    });
+
+    // Carril Killzones (ICT) con Silver Bullet
+    html += `<text x="${padX - 10}" y="${kzTop + kzSubH * 0.72}" text-anchor="end" fill="${COL.laneLabel}" font-size="11" font-weight="700" font-family="Inter, sans-serif">Killzones</text>`;
+    html += `<rect x="${padX}" y="${kzTop}" width="${innerW}" height="${kzTrackH}" fill="${COL.laneBg}" rx="4"/>`;
+    kzSegments.forEach(seg => {
+        const y = kzYAt(seg.row);
+        const x1 = xAt(seg.start), x2 = xAt(seg.end);
+        const w = x2 - x1;
+        html += `<rect x="${x1}" y="${y}" width="${w}" height="${kzSubH}" fill="${seg.color}" fill-opacity="0.85" rx="3"/>`;
+        if (w > 30) {
+            html += `<text x="${(x1 + x2) / 2}" y="${y + kzSubH * 0.74}" text-anchor="middle" fill="#0b1220" font-size="8.5" font-weight="800" font-family="Inter, sans-serif">${escapeHtml(seg.label)}</text>`;
+        }
+        // Silver Bullet: barra dorada dentro de su killzone
+        if (seg.sb) {
+            const sx1 = xAt(seg.sb[0]), sx2 = xAt(seg.sb[1]);
+            html += `<rect x="${sx1}" y="${y}" width="${sx2 - sx1}" height="${kzSubH}" fill="${SB_COLOR}" fill-opacity="0.95" rx="3" stroke="#0b1220" stroke-opacity="0.3" stroke-width="0.6"/>`;
+        }
     });
 
     // Cursor "ahora"
@@ -1784,13 +1855,14 @@ function renderForexTimeline(nowMs) {
     }
 
     // Guardar estado para que el handler de scrub use las mismas dimensiones/lanes
-    __timelineState = { lanes, W, H, padX, padY, innerW, nowMins: (userNowMins >= 0 && userNowMins <= 1440) ? userNowMins : null };
+    __timelineState = { lanes, kzSegments, W, H, padX, padY, innerW, nowMins: (userNowMins >= 0 && userNowMins <= 1440) ? userNowMins : null };
 
     // Legend
     if (legendEl) {
         legendEl.innerHTML = lanes.map(lane =>
             `<span class="legend-item"><span class="legend-swatch" style="background:${lane.color}"></span>${escapeHtml(lane.mkt.name)}</span>`
-        ).join('');
+        ).join('') +
+            `<span class="legend-item"><span class="legend-swatch" style="background:${SB_COLOR}"></span>Silver Bullet</span>`;
     }
 }
 
@@ -1841,9 +1913,16 @@ function setupTimelineScrub() {
         const open = state.lanes.filter(lane =>
             lane.segments.some(([s, e]) => mins >= s && mins < e)
         );
-        const sessionsLabel = open.length
+        let sessionsLabel = open.length
             ? open.map(l => l.mkt.name).join(' · ')
             : t('timeline.no_sessions');
+
+        // Killzone (y Silver Bullet) activa en ese minuto
+        const kzAt = (state.kzSegments || []).find(seg => mins >= seg.start && mins < seg.end);
+        if (kzAt) {
+            const sbOn = kzAt.sb && mins >= kzAt.sb[0] && mins < kzAt.sb[1];
+            sessionsLabel += sbOn ? ` · 🎯 ${kzAt.label} · Silver Bullet` : ` · KZ ${kzAt.label}`;
+        }
 
         if (ttTime) ttTime.textContent = timeStr;
         if (ttSessions) ttSessions.textContent = sessionsLabel;
