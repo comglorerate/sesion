@@ -140,6 +140,8 @@ const translations = {
             macro_hint: 'Te avisa 5 minutos antes',
             opens_title: 'Aperturas de mercado',
             opens_hint: 'Te avisa al momento de la apertura',
+            kz_title: 'Killzones (ICT)',
+            kz_hint: 'Te avisa al inicio de cada ventana',
             custom_title: 'Alarmas personalizadas',
             custom_hint: 'Crea tus propias alarmas (ej. "13:00 — Reanudación de sesión")',
             add: 'Añadir',
@@ -155,7 +157,12 @@ const translations = {
                 openLondon: 'London abre',
                 openTokyo: 'Tokyo abre',
                 openSydney: 'Sydney abre',
-                goldenHour: 'Inicio Golden Hour (cripto)'
+                goldenHour: 'Inicio Golden Hour (cripto)',
+                kzLondon: 'Killzone Londres (apertura)',
+                kzNy: 'Killzone Nueva York (AM)',
+                kzLondonClose: 'Killzone Cierre de Londres',
+                kzAsia: 'Killzone Asia',
+                silverBullet: '🎯 Silver Bullet'
             },
             preset_msg: {
                 fomc: 'FOMC en 5 min · Decisión de tasas — máxima volatilidad',
@@ -167,7 +174,12 @@ const translations = {
                 openLondon: 'London acaba de abrir — alta liquidez',
                 openTokyo: 'Tokyo acaba de abrir',
                 openSydney: 'Sydney acaba de abrir',
-                goldenHour: 'Golden Hour comienza ahora · London + NY → máxima liquidez cripto'
+                goldenHour: 'Golden Hour comienza ahora · London + NY → máxima liquidez cripto',
+                kzLondon: 'Killzone de Londres (apertura) comienza ahora — alta probabilidad',
+                kzNy: 'Killzone de Nueva York (AM) comienza ahora — alta probabilidad',
+                kzLondonClose: 'Killzone del cierre de Londres comienza ahora',
+                kzAsia: 'Killzone de Asia comienza ahora',
+                silverBullet: 'Silver Bullet comienza ahora · ventana de 1h de alta precisión'
             },
             form: {
                 title_add: 'Nueva alarma',
@@ -344,6 +356,8 @@ const translations = {
             macro_hint: 'Alerts 5 minutes before',
             opens_title: 'Market opens',
             opens_hint: 'Alerts at market open',
+            kz_title: 'Killzones (ICT)',
+            kz_hint: 'Alerts at the start of each window',
             custom_title: 'Custom alarms',
             custom_hint: 'Create your own alarms (e.g. "1:00 PM — Session resume")',
             add: 'Add',
@@ -359,7 +373,12 @@ const translations = {
                 openLondon: 'London opens',
                 openTokyo: 'Tokyo opens',
                 openSydney: 'Sydney opens',
-                goldenHour: 'Golden Hour start (crypto)'
+                goldenHour: 'Golden Hour start (crypto)',
+                kzLondon: 'London Killzone (open)',
+                kzNy: 'New York Killzone (AM)',
+                kzLondonClose: 'London Close Killzone',
+                kzAsia: 'Asia Killzone',
+                silverBullet: '🎯 Silver Bullet'
             },
             preset_msg: {
                 fomc: 'FOMC in 5 min · Rate decision — max volatility',
@@ -371,7 +390,12 @@ const translations = {
                 openLondon: 'London just opened — high liquidity',
                 openTokyo: 'Tokyo just opened',
                 openSydney: 'Sydney just opened',
-                goldenHour: 'Golden Hour starts now · London + NY = max crypto liquidity'
+                goldenHour: 'Golden Hour starts now · London + NY = max crypto liquidity',
+                kzLondon: 'London Open Killzone starts now — high probability',
+                kzNy: 'New York AM Killzone starts now — high probability',
+                kzLondonClose: 'London Close Killzone starts now',
+                kzAsia: 'Asia Killzone starts now',
+                silverBullet: 'Silver Bullet starts now · 1h high-precision window'
             },
             form: {
                 title_add: 'New alarm',
@@ -2889,7 +2913,8 @@ const DEFAULT_NOTIF_STATE = {
     presets: {
         fomc: false, nfp: false, cpi: false, cme: false,
         openNasdaq: false, openNY: false, openLondon: false,
-        openTokyo: false, openSydney: false, goldenHour: false
+        openTokyo: false, openSydney: false, goldenHour: false,
+        kzLondon: false, kzNy: false, kzLondonClose: false, kzAsia: false, silverBullet: false
     },
     custom: [], // [{ id, time: 'HH:MM', message, days: [0..6], enabled: true }]
     eventReminders: [] // [{ key, title, body, fireAt }] recordatorios puntuales de eventos
@@ -3027,8 +3052,59 @@ function findNextPresetEvent(presetId, nowMs) {
         case 'openLondon': return findNextMarketOpenForPreset('london', nowMs, 'openLondon');
         case 'openTokyo':  return findNextMarketOpenForPreset('tokyo',  nowMs, 'openTokyo');
         case 'openSydney': return findNextMarketOpenForPreset('sydney', nowMs, 'openSydney');
+        case 'kzLondon':       return killzonePresetEvent('london', nowMs);
+        case 'kzNy':           return killzonePresetEvent('ny', nowMs);
+        case 'kzLondonClose':  return killzonePresetEvent('london_close', nowMs);
+        case 'kzAsia':         return killzonePresetEvent('asia', nowMs);
+        case 'silverBullet':   return silverBulletPresetEvent(nowMs);
     }
     return null;
+}
+
+// Próximo inicio (instante) de una killzone en un día válido (ET). useSb → usa
+// la sub-ventana Silver Bullet en lugar de la killzone completa.
+function nextKillzoneStartInstant(kz, nowMs, useSb) {
+    if (useSb && !kz.sb) return null;
+    const p = TzUtils.getZonedParts(nowMs, 'America/New_York');
+    let ymd = { year: p.year, month: p.month, day: p.day };
+    for (let i = 0; i < 8; i++) {
+        const wd = new Date(Date.UTC(ymd.year, ymd.month - 1, ymd.day, 12)).getUTCDay();
+        if (kz.days.includes(wd)) {
+            const sH = useSb ? kz.sb.startH : kz.startH;
+            const sM = useSb ? (kz.sb.startM || 0) : (kz.startM || 0);
+            const st = instantInET(ymd.year, ymd.month, ymd.day, sH, sM);
+            if (st.getTime() > nowMs) return st;
+        }
+        ymd = TzUtils.addDaysYMD(ymd, 1);
+    }
+    return null;
+}
+
+function killzonePresetEvent(kzId, nowMs) {
+    const kz = KILLZONES.find(k => k.id === kzId);
+    if (!kz) return null;
+    const inst = nextKillzoneStartInstant(kz, nowMs, false);
+    if (!inst) return null;
+    const es = currentLang !== 'en';
+    const titles = es
+        ? { london: 'Killzone Londres', ny: 'Killzone NY AM', london_close: 'Cierre de Londres', asia: 'Killzone Asia' }
+        : { london: 'London Killzone', ny: 'New York Killzone', london_close: 'London Close', asia: 'Asia Killzone' };
+    const msgKey = { london: 'kzLondon', ny: 'kzNy', london_close: 'kzLondonClose', asia: 'kzAsia' }[kzId];
+    return { fireAt: inst.getTime(), title: titles[kzId] || 'Killzone', body: t('notifs.preset_msg.' + msgKey) };
+}
+
+// Próximo Silver Bullet (el más cercano entre Londres 03:00 y NY 10:00 ET)
+function silverBulletPresetEvent(nowMs) {
+    const cands = ['london', 'ny']
+        .map(id => {
+            const kz = KILLZONES.find(k => k.id === id);
+            const inst = kz ? nextKillzoneStartInstant(kz, nowMs, true) : null;
+            return inst ? inst.getTime() : null;
+        })
+        .filter(v => v != null);
+    if (!cands.length) return null;
+    const fireAt = Math.min(...cands);
+    return { fireAt, title: '🎯 Silver Bullet', body: t('notifs.preset_msg.silverBullet') };
 }
 
 function findNextMarketOpenForPreset(mktId, nowMs, presetKey) {
