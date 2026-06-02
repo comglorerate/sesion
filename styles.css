@@ -1254,6 +1254,22 @@ section { margin-bottom: var(--space-8); }
     padding: var(--space-5);
     box-shadow: var(--shadow-soft);
 }
+/* Contenedor con scroll horizontal (solo se activa en la app, clase .is-wide).
+   Reserva espacio arriba para que el reloj/tooltip "ahora" no se recorten. */
+.timeline-scroll { position: relative; }
+.timeline-scroll.is-wide {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-top: 26px;
+    margin-top: -18px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+.timeline-scroll.is-wide::-webkit-scrollbar { height: 5px; }
+.timeline-scroll.is-wide::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 3px; }
+/* Permite el scroll horizontal del timeline (el arrastre de la línea "ahora"
+   hace preventDefault cuando se agarra, así que ese gesto sigue funcionando). */
+.timeline-scroll.is-wide .timeline-svg-wrap { touch-action: pan-x pan-y; }
 .timeline-svg-wrap {
     width: 100%;
     border-radius: var(--radius-md);
