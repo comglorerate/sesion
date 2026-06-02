@@ -1642,7 +1642,7 @@ function renderForexTimeline(nowMs) {
     if (!container || !svgHost) return;
 
     const W = Math.max(320, container.clientWidth || 600);
-    const padX = 56, padY = 18, lanesGap = 6;
+    const padX = 74, padY = 18, lanesGap = 6;
     const laneCount = forexMarkets.length;
     const laneH = 22;
     const innerW = W - padX * 2;
@@ -1726,7 +1726,7 @@ function renderForexTimeline(nowMs) {
         asia:         { color: '#c084fc', label: 'Asia' },
         london:       { color: '#60a5fa', label: kzEs ? 'Londres' : 'London' },
         ny:           { color: '#34d399', label: 'NY AM' },
-        london_close: { color: '#fb7185', label: kzEs ? 'Cierre LDN' : 'LDN close' }
+        london_close: { color: '#fb7185', label: kzEs ? 'Cierre' : 'Close' }
     };
     const SB_COLOR = '#fcd34d';
     const kzSegments = [];
@@ -1765,7 +1765,7 @@ function renderForexTimeline(nowMs) {
 
     // Geometría vertical (mercados arriba, killzones abajo)
     const marketsBottom = padY + laneCount * laneH + (laneCount - 1) * lanesGap;
-    const kzGap = 16, kzSubH = 14, kzSubGap = 3;
+    const kzGap = 18, kzSubH = 18, kzSubGap = 4;
     const kzTrackH = kzRows * kzSubH + (kzRows - 1) * kzSubGap;
     const kzTop = marketsBottom + kzGap;
     const H = kzTop + kzTrackH + 22; // +22 para las horas abajo
@@ -1826,14 +1826,18 @@ function renderForexTimeline(nowMs) {
         const y = kzYAt(seg.row);
         const x1 = xAt(seg.start), x2 = xAt(seg.end);
         const w = x2 - x1;
+        // 1) Segmento de la killzone
         html += `<rect x="${x1}" y="${y}" width="${w}" height="${kzSubH}" fill="${seg.color}" fill-opacity="0.85" rx="3"/>`;
-        if (w > 30) {
-            html += `<text x="${(x1 + x2) / 2}" y="${y + kzSubH * 0.74}" text-anchor="middle" fill="#0b1220" font-size="8.5" font-weight="800" font-family="Inter, sans-serif">${escapeHtml(seg.label)}</text>`;
-        }
-        // Silver Bullet: barra dorada dentro de su killzone
+        // 2) Silver Bullet: franja dorada en la parte INFERIOR de la killzone
+        // (no tapa el color ni la etiqueta, que viven en la parte superior).
         if (seg.sb) {
             const sx1 = xAt(seg.sb[0]), sx2 = xAt(seg.sb[1]);
-            html += `<rect x="${sx1}" y="${y}" width="${sx2 - sx1}" height="${kzSubH}" fill="${SB_COLOR}" fill-opacity="0.95" rx="3" stroke="#0b1220" stroke-opacity="0.3" stroke-width="0.6"/>`;
+            const sbY = y + kzSubH * 0.52;
+            html += `<rect x="${sx1}" y="${sbY}" width="${sx2 - sx1}" height="${kzSubH * 0.48}" fill="${SB_COLOR}" fill-opacity="0.98" rx="2"/>`;
+        }
+        // 3) Etiqueta en la parte superior (se lee completa sobre el color)
+        if (w > 26) {
+            html += `<text x="${(x1 + x2) / 2}" y="${y + kzSubH * 0.42}" text-anchor="middle" fill="#0b1220" font-size="9" font-weight="800" font-family="Inter, sans-serif">${escapeHtml(seg.label)}</text>`;
         }
     });
 
