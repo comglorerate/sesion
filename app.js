@@ -1642,9 +1642,9 @@ function renderForexTimeline(nowMs) {
     if (!container || !svgHost) return;
 
     const W = Math.max(320, container.clientWidth || 600);
-    const padX = 74, padY = 18, lanesGap = 6;
+    const padX = 74, padY = 22, lanesGap = 11;
     const laneCount = forexMarkets.length;
-    const laneH = 22;
+    const laneH = 30;
     const innerW = W - padX * 2;
     // H se calcula más abajo (depende de cuántas sub-filas ocupen las killzones).
 
@@ -1765,10 +1765,10 @@ function renderForexTimeline(nowMs) {
 
     // Geometría vertical (mercados arriba, killzones abajo)
     const marketsBottom = padY + laneCount * laneH + (laneCount - 1) * lanesGap;
-    const kzGap = 18, kzSubH = 18, kzSubGap = 4;
+    const kzGap = 22, kzSubH = 22, kzSubGap = 5;
     const kzTrackH = kzRows * kzSubH + (kzRows - 1) * kzSubGap;
     const kzTop = marketsBottom + kzGap;
-    const H = kzTop + kzTrackH + 22; // +22 para las horas abajo
+    const H = kzTop + kzTrackH + 26; // espacio para las horas abajo
 
     // ---- Render SVG ----
     const xAt = (mins) => padX + (mins / 1440) * innerW;
@@ -1801,14 +1801,14 @@ function renderForexTimeline(nowMs) {
     for (let h = 0; h <= 24; h += 3) {
         const x = xAt(h * 60);
         html += `<line x1="${x}" y1="${padY - 4}" x2="${x}" y2="${H - padY - 14}" stroke="${COL.tickLine}" stroke-width="1"/>`;
-        html += `<text x="${x}" y="${H - 6}" text-anchor="middle" fill="${COL.tickText}" font-size="10" font-family="Inter, sans-serif">${pad2(h)}:00</text>`;
+        html += `<text x="${x}" y="${H - 6}" text-anchor="middle" fill="${COL.tickText}" font-size="11" font-family="Inter, sans-serif">${pad2(h)}:00</text>`;
     }
 
     // Lanes
     lanes.forEach((lane, i) => {
         const y = yAt(i);
         // label
-        html += `<text x="${padX - 10}" y="${y + laneH * 0.7}" text-anchor="end" fill="${COL.laneLabel}" font-size="11" font-weight="600" font-family="Inter, sans-serif">${escapeHtml(lane.mkt.name)}</text>`;
+        html += `<text x="${padX - 10}" y="${y + laneH * 0.65}" text-anchor="end" fill="${COL.laneLabel}" font-size="12.5" font-weight="600" font-family="Inter, sans-serif">${escapeHtml(lane.mkt.name)}</text>`;
         // background lane
         html += `<rect x="${padX}" y="${y}" width="${innerW}" height="${laneH}" fill="${COL.laneBg}" rx="4"/>`;
         // segments
@@ -1820,7 +1820,7 @@ function renderForexTimeline(nowMs) {
     });
 
     // Carril Killzones (ICT) con Silver Bullet
-    html += `<text x="${padX - 10}" y="${kzTop + kzSubH * 0.72}" text-anchor="end" fill="${COL.laneLabel}" font-size="11" font-weight="700" font-family="Inter, sans-serif">Killzones</text>`;
+    html += `<text x="${padX - 10}" y="${kzTop + kzSubH * 0.66}" text-anchor="end" fill="${COL.laneLabel}" font-size="12.5" font-weight="700" font-family="Inter, sans-serif">Killzones</text>`;
     html += `<rect x="${padX}" y="${kzTop}" width="${innerW}" height="${kzTrackH}" fill="${COL.laneBg}" rx="4"/>`;
     kzSegments.forEach(seg => {
         const y = kzYAt(seg.row);
@@ -1837,7 +1837,7 @@ function renderForexTimeline(nowMs) {
         }
         // 3) Etiqueta en la parte superior (se lee completa sobre el color)
         if (w > 26) {
-            html += `<text x="${(x1 + x2) / 2}" y="${y + kzSubH * 0.42}" text-anchor="middle" fill="#0b1220" font-size="9" font-weight="800" font-family="Inter, sans-serif">${escapeHtml(seg.label)}</text>`;
+            html += `<text x="${(x1 + x2) / 2}" y="${y + kzSubH * 0.40}" text-anchor="middle" fill="#0b1220" font-size="10.5" font-weight="800" font-family="Inter, sans-serif">${escapeHtml(seg.label)}</text>`;
         }
     });
 
