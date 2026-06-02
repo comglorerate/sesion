@@ -158,9 +158,9 @@ const translations = {
                 openTokyo: 'Tokyo abre',
                 openSydney: 'Sydney abre',
                 goldenHour: 'Inicio Golden Hour (cripto)',
-                kzLondon: 'Killzone Londres (apertura)',
+                kzLondon: 'Killzone London (apertura)',
                 kzNy: 'Killzone Nueva York (AM)',
-                kzLondonClose: 'Killzone Cierre de Londres',
+                kzLondonClose: 'Killzone Cierre de London',
                 kzAsia: 'Killzone Asia',
                 silverBullet: '🎯 Silver Bullet'
             },
@@ -175,9 +175,9 @@ const translations = {
                 openTokyo: 'Tokyo acaba de abrir',
                 openSydney: 'Sydney acaba de abrir',
                 goldenHour: 'Golden Hour comienza ahora · London + NY → máxima liquidez cripto',
-                kzLondon: 'Killzone de Londres (apertura) comienza ahora — alta probabilidad',
+                kzLondon: 'Killzone de London (apertura) comienza ahora — alta probabilidad',
                 kzNy: 'Killzone de Nueva York (AM) comienza ahora — alta probabilidad',
-                kzLondonClose: 'Killzone del cierre de Londres comienza ahora',
+                kzLondonClose: 'Killzone del cierre de London comienza ahora',
                 kzAsia: 'Killzone de Asia comienza ahora',
                 silverBullet: 'Silver Bullet comienza ahora · ventana de 1h de alta precisión'
             },
@@ -1548,7 +1548,7 @@ function renderKillzones(nowMs) {
     const now = nowMs ?? Date.now();
     const es = currentLang !== 'en';
     const names = es
-        ? { asia: 'Asia', london: 'Londres (apertura)', ny: 'Nueva York (AM)', london_close: 'Cierre de Londres' }
+        ? { asia: 'Asia', london: 'London (apertura)', ny: 'Nueva York (AM)', london_close: 'Cierre de London' }
         : { asia: 'Asia', london: 'London (open)', ny: 'New York (AM)', london_close: 'London close' };
     const tz = getEffectiveUserTimezone();
     const fmtT = (inst) => {
@@ -1642,7 +1642,7 @@ function renderForexTimeline(nowMs) {
     if (!container || !svgHost) return;
 
     const W = Math.max(320, container.clientWidth || 600);
-    const padX = 56, padY = 18, lanesGap = 6;
+    const padX = 74, padY = 18, lanesGap = 6;
     const laneCount = forexMarkets.length;
     const laneH = 22;
     const innerW = W - padX * 2;
@@ -1724,9 +1724,9 @@ function renderForexTimeline(nowMs) {
     const kzEs = currentLang !== 'en';
     const KZ_META = {
         asia:         { color: '#c084fc', label: 'Asia' },
-        london:       { color: '#60a5fa', label: kzEs ? 'Londres' : 'London' },
+        london:       { color: '#60a5fa', label: 'London' },
         ny:           { color: '#34d399', label: 'NY AM' },
-        london_close: { color: '#fb7185', label: kzEs ? 'Cierre LDN' : 'LDN close' }
+        london_close: { color: '#fb7185', label: kzEs ? 'Cierre' : 'Close' }
     };
     const SB_COLOR = '#fcd34d';
     const kzSegments = [];
@@ -1765,7 +1765,7 @@ function renderForexTimeline(nowMs) {
 
     // Geometría vertical (mercados arriba, killzones abajo)
     const marketsBottom = padY + laneCount * laneH + (laneCount - 1) * lanesGap;
-    const kzGap = 16, kzSubH = 14, kzSubGap = 3;
+    const kzGap = 18, kzSubH = 18, kzSubGap = 4;
     const kzTrackH = kzRows * kzSubH + (kzRows - 1) * kzSubGap;
     const kzTop = marketsBottom + kzGap;
     const H = kzTop + kzTrackH + 22; // +22 para las horas abajo
@@ -1826,14 +1826,18 @@ function renderForexTimeline(nowMs) {
         const y = kzYAt(seg.row);
         const x1 = xAt(seg.start), x2 = xAt(seg.end);
         const w = x2 - x1;
+        // 1) Segmento de la killzone
         html += `<rect x="${x1}" y="${y}" width="${w}" height="${kzSubH}" fill="${seg.color}" fill-opacity="0.85" rx="3"/>`;
-        if (w > 30) {
-            html += `<text x="${(x1 + x2) / 2}" y="${y + kzSubH * 0.74}" text-anchor="middle" fill="#0b1220" font-size="8.5" font-weight="800" font-family="Inter, sans-serif">${escapeHtml(seg.label)}</text>`;
-        }
-        // Silver Bullet: barra dorada dentro de su killzone
+        // 2) Silver Bullet: franja dorada en la parte INFERIOR de la killzone
+        // (no tapa el color ni la etiqueta, que viven en la parte superior).
         if (seg.sb) {
             const sx1 = xAt(seg.sb[0]), sx2 = xAt(seg.sb[1]);
-            html += `<rect x="${sx1}" y="${y}" width="${sx2 - sx1}" height="${kzSubH}" fill="${SB_COLOR}" fill-opacity="0.95" rx="3" stroke="#0b1220" stroke-opacity="0.3" stroke-width="0.6"/>`;
+            const sbY = y + kzSubH * 0.52;
+            html += `<rect x="${sx1}" y="${sbY}" width="${sx2 - sx1}" height="${kzSubH * 0.48}" fill="${SB_COLOR}" fill-opacity="0.98" rx="2"/>`;
+        }
+        // 3) Etiqueta en la parte superior (se lee completa sobre el color)
+        if (w > 26) {
+            html += `<text x="${(x1 + x2) / 2}" y="${y + kzSubH * 0.42}" text-anchor="middle" fill="#0b1220" font-size="9" font-weight="800" font-family="Inter, sans-serif">${escapeHtml(seg.label)}</text>`;
         }
     });
 
@@ -3087,7 +3091,7 @@ function killzonePresetEvent(kzId, nowMs) {
     if (!inst) return null;
     const es = currentLang !== 'en';
     const titles = es
-        ? { london: 'Killzone Londres', ny: 'Killzone NY AM', london_close: 'Cierre de Londres', asia: 'Killzone Asia' }
+        ? { london: 'Killzone London', ny: 'Killzone NY AM', london_close: 'Cierre de London', asia: 'Killzone Asia' }
         : { london: 'London Killzone', ny: 'New York Killzone', london_close: 'London Close', asia: 'Asia Killzone' };
     const msgKey = { london: 'kzLondon', ny: 'kzNy', london_close: 'kzLondonClose', asia: 'kzAsia' }[kzId];
     return { fireAt: inst.getTime(), title: titles[kzId] || 'Killzone', body: t('notifs.preset_msg.' + msgKey) };
