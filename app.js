@@ -1518,6 +1518,8 @@ const FOREX_COLORS = {
 let __timelineState = {
     lanes: [], W: 600, H: 140, padX: 56, padY: 18, innerW: 0
 };
+// Auto-scroll a "ahora" una sola vez (timeline ancho en la app)
+let __tlAutoScrolled = false;
 
 // ============================================================
 // Killzones (ICT) — franjas de alta probabilidad, definidas en hora ET
@@ -1641,7 +1643,15 @@ function renderForexTimeline(nowMs) {
     const legendEl = document.getElementById('forex-timeline-legend');
     if (!container || !svgHost) return;
 
-    const W = Math.max(320, container.clientWidth || 600);
+    // Ancho del lienzo. En la app (móvil) usamos un lienzo más ancho con scroll
+    // horizontal para que las 24h no se vean apretadas; en web se ajusta al ancho.
+    // El ancho disponible se mide del contenedor con scroll (estable), NO del
+    // propio timeline (al que le fijamos el ancho), para evitar realimentación.
+    const isInApp = !!(window.AndroidNotify || window.AndroidAuth);
+    const scrollHost = document.getElementById('forex-timeline-scroll');
+    const availW = (scrollHost && scrollHost.clientWidth) ? scrollHost.clientWidth : (container.clientWidth || 600);
+    const baseW = Math.max(320, availW);
+    const W = isInApp ? Math.max(660, Math.round(baseW * 1.9)) : baseW;
     const padX = 74, padY = 18, lanesGap = 6;
     const laneCount = forexMarkets.length;
     const laneH = 22;
@@ -1768,7 +1778,7 @@ function renderForexTimeline(nowMs) {
     const kzGap = 18, kzSubH = 18, kzSubGap = 4;
     const kzTrackH = kzRows * kzSubH + (kzRows - 1) * kzSubGap;
     const kzTop = marketsBottom + kzGap;
-    const H = kzTop + kzTrackH + 22; // +22 para las horas abajo
+    const H = kzTop + kzTrackH + 22; // espacio para las horas abajo
 
     // ---- Render SVG ----
     const xAt = (mins) => padX + (mins / 1440) * innerW;
@@ -1851,6 +1861,21 @@ function renderForexTimeline(nowMs) {
 
     html += '</svg>';
     svgHost.innerHTML = html;
+
+    // App: lienzo ancho con scroll horizontal (no se ve apretado). En web, ancho auto.
+    if (scrollHost) {
+        scrollHost.classList.toggle('is-wide', isInApp);
+        container.style.width = isInApp ? (W + 'px') : '';
+        // Centrar "ahora" al abrir (una sola vez, para no dar tirones cada minuto)
+        if (isInApp && !__tlAutoScrolled) {
+            const nm = (userNowMs - userMidnight.getTime()) / 60000;
+            if (nm >= 0 && nm <= 1440) {
+                const nx = padX + (nm / 1440) * innerW;
+                scrollHost.scrollLeft = Math.max(0, nx - scrollHost.clientWidth / 2);
+                __tlAutoScrolled = true;
+            }
+        }
+    }
 
     // Reloj "ahora" (chip HTML) + manija (knob) sobre la línea blanca punteada
     const nowLabel = document.getElementById('timeline-now-label');
