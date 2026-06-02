@@ -1724,7 +1724,7 @@ function renderForexTimeline(nowMs) {
     const kzEs = currentLang !== 'en';
     const KZ_META = {
         asia:         { color: '#c084fc', label: 'Asia' },
-        london:       { color: '#60a5fa', label: kzEs ? 'Londres' : 'London' },
+        london:       { color: '#60a5fa', label: 'London' },
         ny:           { color: '#34d399', label: 'NY AM' },
         london_close: { color: '#fb7185', label: kzEs ? 'Cierre' : 'Close' }
     };
