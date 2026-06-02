@@ -158,9 +158,9 @@ const translations = {
                 openTokyo: 'Tokyo abre',
                 openSydney: 'Sydney abre',
                 goldenHour: 'Inicio Golden Hour (cripto)',
-                kzLondon: 'Killzone Londres (apertura)',
+                kzLondon: 'Killzone London (apertura)',
                 kzNy: 'Killzone Nueva York (AM)',
-                kzLondonClose: 'Killzone Cierre de Londres',
+                kzLondonClose: 'Killzone Cierre de London',
                 kzAsia: 'Killzone Asia',
                 silverBullet: '🎯 Silver Bullet'
             },
@@ -175,9 +175,9 @@ const translations = {
                 openTokyo: 'Tokyo acaba de abrir',
                 openSydney: 'Sydney acaba de abrir',
                 goldenHour: 'Golden Hour comienza ahora · London + NY → máxima liquidez cripto',
-                kzLondon: 'Killzone de Londres (apertura) comienza ahora — alta probabilidad',
+                kzLondon: 'Killzone de London (apertura) comienza ahora — alta probabilidad',
                 kzNy: 'Killzone de Nueva York (AM) comienza ahora — alta probabilidad',
-                kzLondonClose: 'Killzone del cierre de Londres comienza ahora',
+                kzLondonClose: 'Killzone del cierre de London comienza ahora',
                 kzAsia: 'Killzone de Asia comienza ahora',
                 silverBullet: 'Silver Bullet comienza ahora · ventana de 1h de alta precisión'
             },
@@ -1548,7 +1548,7 @@ function renderKillzones(nowMs) {
     const now = nowMs ?? Date.now();
     const es = currentLang !== 'en';
     const names = es
-        ? { asia: 'Asia', london: 'Londres (apertura)', ny: 'Nueva York (AM)', london_close: 'Cierre de Londres' }
+        ? { asia: 'Asia', london: 'London (apertura)', ny: 'Nueva York (AM)', london_close: 'Cierre de London' }
         : { asia: 'Asia', london: 'London (open)', ny: 'New York (AM)', london_close: 'London close' };
     const tz = getEffectiveUserTimezone();
     const fmtT = (inst) => {
@@ -3091,7 +3091,7 @@ function killzonePresetEvent(kzId, nowMs) {
     if (!inst) return null;
     const es = currentLang !== 'en';
     const titles = es
-        ? { london: 'Killzone Londres', ny: 'Killzone NY AM', london_close: 'Cierre de Londres', asia: 'Killzone Asia' }
+        ? { london: 'Killzone London', ny: 'Killzone NY AM', london_close: 'Cierre de London', asia: 'Killzone Asia' }
         : { london: 'London Killzone', ny: 'New York Killzone', london_close: 'London Close', asia: 'Asia Killzone' };
     const msgKey = { london: 'kzLondon', ny: 'kzNy', london_close: 'kzLondonClose', asia: 'kzAsia' }[kzId];
     return { fireAt: inst.getTime(), title: titles[kzId] || 'Killzone', body: t('notifs.preset_msg.' + msgKey) };
